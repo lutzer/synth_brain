@@ -5,13 +5,16 @@
 
 #include <avr/io.h>
 #include <util/delay.h>
+#include "uart.h"
 
+// led is on PIN D7
 #define LED1_PIN 7
 
 int main(void)
 {
-    // make the LED pin an output for PORTB5
     DDRD = 1 << LED1_PIN;
+
+    uart_init();
 
     while (1)
     {
@@ -19,6 +22,8 @@ int main(void)
 
         // toggle the LED
         PORTD ^= 1 << LED1_PIN;
+
+        uart_putchar('t');
     }
 
     return 0;

@@ -18,4 +18,5 @@ Todo (done by arduino IDE for now)
 ## Debugging
 
 * connect a sparkfun FTDI Basic (or similar) to gnd and tx pin (PIN3)
-* set baud rate to 31250
+* setup port in platformio.ini
+* run `pio device monitor`

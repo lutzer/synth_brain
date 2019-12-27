@@ -18,12 +18,22 @@ int main(void)
 
     while (1)
     {
-        _delay_ms(500);
+        
+        // toggle led off
+        PORTD &= ~(1 << LED1_PIN);
 
-        // toggle the LED
-        PORTD ^= 1 << LED1_PIN;
+        if (uart_data_available()) {
 
-        uart_putstring("test");
+            // toggle on when receiving
+            PORTD |= 1 << LED1_PIN;
+
+            char c = uart_getchar();
+            uart_putstring("received:");
+            uart_putchar(c);
+            uart_putstring("\n");
+        }
+
+        // _delay_ms(500)
     }
 
     return 0;

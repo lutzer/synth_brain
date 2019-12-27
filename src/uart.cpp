@@ -1,5 +1,4 @@
 #include <avr/io.h>
-#include <stdio.h>
 #include <string.h>
 #include "uart.h"
 
@@ -26,7 +25,7 @@ void uart_putchar(char c) {
 }
 
 void uart_putstring(const char *s) {
-    for (int i=0; i<strlen(s); i++) {
+    for (size_t i=0; i<strlen(s); i++) {
         uart_putchar(s[i]);
     }
 }
@@ -34,4 +33,8 @@ void uart_putstring(const char *s) {
 char uart_getchar() {
     loop_until_bit_is_set(UCSR0A, RXC0);
     return UDR0;
+}
+
+bool uart_data_available() {
+    return UCSR0A & (1 << RXC0);
 }

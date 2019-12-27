@@ -10,6 +10,12 @@
 
 Todo (done by arduino IDE for now)
 
-## Program
+## Compile & Upload Program 
 
-* run `pio run -t program` to programm board
+* to compile code run `pio run`
+* to programm mcu over isp, run `pio run -t program`
+
+## Debugging
+
+* connect a sparkfun FTDI Basic (or similar) to gnd and tx pin (PIN3)
+* set baud rate to 31250

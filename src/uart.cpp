@@ -2,9 +2,9 @@
 #include <string.h>
 #include "uart.h"
 
-
 #ifndef BAUD
-#define BAUD 9600
+// midi baud rate is 31250 bps
+#define BAUD 31250
 #endif
 
 #include <util/setbaud.h>

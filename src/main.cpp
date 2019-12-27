@@ -23,7 +23,7 @@ int main(void)
         // toggle the LED
         PORTD ^= 1 << LED1_PIN;
 
-        uart_putchar('t');
+        uart_putstring("test");
     }
 
     return 0;

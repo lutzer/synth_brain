@@ -1,39 +1,61 @@
-#include <avr/io.h>
-#include <util/delay.h>
-#include "uart.h"
+#include "params.h"
 
-// leds are on PIN D7 and D6
-#define LED1_PIN 7
-#define LED2_PIN 6
+#include <avr/io.h>
+#include <avr/interrupt.h>
+#include <util/delay.h>
+#include "utils/Ringbuffer.h"
+#include "uart.h"
+#include "midi.h"
+
+RingBuffer serialData = RingBuffer(SERIAL_BUFFER_SIZE);
 
 int main(void)
 {
+
     DDRD |= 1 << LED1_PIN;
     DDRD |= 1 << LED2_PIN; 
 
-    uart_init();
+    PORTD |= 1 << LED2_PIN; //turn on led1
 
-    PORTD |= 1 << LED2_PIN;
+    MidiReader midiIn;
+
+    uart_init(); // init serial
+    UCSR0B |= (1 << RXCIE0); // use serial interrupt
+
+    sei(); // enable global interrupts
 
     while (1)
     {
-
         // toggle led off
         PORTD &= ~(1 << LED1_PIN);
 
-        if (uart_data_available()) {
+        while (serialData.size() > 0) {
 
             // toggle on when receiving
             PORTD |= 1 << LED1_PIN;
 
-            char c = uart_getchar();
-            uart_putstring("received:");
-            uart_putchar(c);
-            uart_putstring("\n");
+            // read serial data
+            cli();
+            char c = serialData.pop();
+            sei();
+
+            // process midi
+            if (midiIn.readByte(c)) {
+                #ifdef DEBUG
+                uart_putstring("midi:");
+                uart_putstring(midiIn.message.toString());
+                uart_putstring("\n");
+                #endif
+            }
         }
-
-        // _delay_ms(500)
     }
-
     return 0;
+}
+
+/* 
+* interrupt method reads uart messages and fills ringbuffer with them
+*/
+ISR(USART_RX_vect) {
+    char c = uart_getchar();
+    serialData.push(c);
 }

@@ -13,6 +13,7 @@ Todo (done by arduino IDE for now)
 ## Compile & Upload Program 
 
 * to compile code run `pio run`
+* connect ISP (Diamex-AVR) with SPI Interface
 * to programm mcu over isp, run `pio run -t program`
 
 ## Debugging

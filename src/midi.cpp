@@ -28,7 +28,7 @@ void MidiReader::parse(byte b) {
     }
 
     // if msg completed call callback
-    if (dataHead > dataSize) {
+    if (dataHead >= dataSize) {
         this->messageHandler(this->message);
         dataHead = 0;
     }

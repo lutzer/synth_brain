@@ -1,6 +1,7 @@
 #include <avr/io.h>
 #include <string.h>
 #include "uart.h"
+#include "params.h"
 
 #ifndef BAUD
 #define BAUD 9600
@@ -16,7 +17,7 @@ void uart_init() {
 
     #ifdef DEBUG
         // Enable RX and TX 
-        UCSR0B = _BV(RXEN0) | _BV(TXEN0); 
+        UCSR0B = _BV(RXEN0) | _BV(TXEN0);
     #else
         // Enable only RX 
         UCSR0B = _BV(RXEN0); 
@@ -38,7 +39,7 @@ void uart_putstring(const char *s) {
 }
 
 char uart_getchar() {
-    //loop_until_bit_is_set(UCSR0A, RXC0);
+    loop_until_bit_is_set(UCSR0A, RXC0);
     return UDR0;
 }
 

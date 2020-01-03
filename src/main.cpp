@@ -23,15 +23,20 @@ int main(void) {
     DDRD |= _BV(LED1_PIN);
     DDRD |= _BV(LED2_PIN); 
 
-    PORTD |= _BV(LED2_PIN); // turn on led1
-
     uart_init(); // init serial
+
+
+    uart_putstring("startet");
 
     midiIn = new MidiReader(&processMidiMessage);
 
+    PORTD |= _BV(LED1_PIN); // turn on led1 after init
+    PORTD &= ~_BV(LED1_PIN); // turn off led2
+
     while (1)
     {
-        PORTD &= ~_BV(LED1_PIN); // turn off led2
+        //PORTD |= _BV(LED2_PIN); // turn on led2 when receiving
+        
 
         // read midi data from rx port
         while (uart_data_available()) {

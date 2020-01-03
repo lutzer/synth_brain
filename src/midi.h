@@ -2,9 +2,8 @@
 #define MIDI_H
 
 typedef char byte;
-typedef unsigned char uchar;
 
-#define MIDI_DATA_MAX_SIZE 2
+#define MIDI_DATA_MAX_SIZE 10
 
 enum MidiCommand {
     Note_Off = 0x8,
@@ -19,25 +18,27 @@ enum MidiCommand {
 
 class MidiMessage {
     public:
-        byte status;
+        byte status = 0;
         byte data[MIDI_DATA_MAX_SIZE];
 
         byte channel();
         MidiCommand command();
 
-        char* toString();
+        const char* toString();
 };
+
+typedef void (*messageHandlerPtr)(MidiMessage);
 
 class MidiReader {
 
-    uchar dataHead;
-    uchar dataSize;
+    messageHandlerPtr messageHandler = 0;
 
     public:
         MidiMessage message;
 
-        MidiReader();
-        bool readByte(byte b);
+        MidiReader(messageHandlerPtr handler);
+        void parse(byte b);
+
 };
 
 #endif

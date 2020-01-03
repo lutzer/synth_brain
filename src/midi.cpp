@@ -1,5 +1,4 @@
 #include "midi.h"
-#include "uart.h"
 
 MidiCommand MidiMessage::command() {
     return MidiCommand::Note_On;
@@ -9,31 +8,29 @@ byte MidiMessage::channel() {
     return 1;
 }
 
-char* MidiMessage::toString() {
-    return "midi message";
+const char* MidiMessage::toString() {
+    return "<msg>";
 }
 
-
-MidiReader::MidiReader() {
-    this->dataHead = 0;
-    this->dataSize = 2;
+MidiReader::MidiReader(messageHandlerPtr handler) {
+    this->messageHandler = handler;
 }
 
-bool MidiReader::readByte(byte b) {
+void MidiReader::parse(byte b) {
+    static unsigned char dataHead, dataSize;
+
     if (b & 0x80) { //status byte
         this->message.status = b;
-        this->dataSize = 2;
-        this->dataHead = 0;
+        dataSize = 2;
+        dataHead = 0;
     } else { // data byte
-        this->message.data[this->dataHead++] = b;
+        this->message.data[dataHead++] = b;
     }
 
-    if (this->dataSize > this->dataHead)
-        // message incomplete
-        return false;
-    else {
-        // message completed
-        this->dataHead = 0;
-        return true;
+    // if msg completed call callback
+    if (dataHead > dataSize) {
+        this->messageHandler(this->message);
+        dataHead = 0;
     }
+
 }

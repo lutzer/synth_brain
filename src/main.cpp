@@ -7,55 +7,38 @@
 #include "uart.h"
 #include "midi.h"
 
-RingBuffer serialData = RingBuffer(SERIAL_BUFFER_SIZE);
+MidiReader *midiIn;
 
-int main(void)
-{
+void processMidiMessage(MidiMessage message) {
+    #ifdef DEBUG
+    uart_putstring("midi:");
+    uart_putstring(message.toString());
+    uart_putstring("\n");
+    #endif
+}
 
-    DDRD |= 1 << LED1_PIN;
-    DDRD |= 1 << LED2_PIN; 
+int main(void) {
 
-    PORTD |= 1 << LED2_PIN; //turn on led1
+    // init gate pins
+    DDRD |= _BV(LED1_PIN);
+    DDRD |= _BV(LED2_PIN); 
 
-    MidiReader midiIn;
+    PORTD |= _BV(LED2_PIN); // turn on led1
 
     uart_init(); // init serial
-    UCSR0B |= (1 << RXCIE0); // use serial interrupt
 
-    sei(); // enable global interrupts
+    midiIn = new MidiReader(&processMidiMessage);
 
     while (1)
     {
-        // toggle led off
-        PORTD &= ~(1 << LED1_PIN);
+        PORTD &= ~_BV(LED1_PIN); // turn off led2
 
-        while (serialData.size() > 0) {
-
-            // toggle on when receiving
-            PORTD |= 1 << LED1_PIN;
-
-            // read serial data
-            cli();
-            char c = serialData.pop();
-            sei();
-
-            // process midi
-            if (midiIn.readByte(c)) {
-                #ifdef DEBUG
-                uart_putstring("midi:");
-                uart_putstring(midiIn.message.toString());
-                uart_putstring("\n");
-                #endif
-            }
+        // read midi data from rx port
+        while (uart_data_available()) {
+            PORTD |= _BV(LED2_PIN); // turn on led2 when receiving
+            char c = uart_getchar();
+            midiIn->parse(c);
         }
     }
     return 0;
-}
-
-/* 
-* interrupt method reads uart messages and fills ringbuffer with them
-*/
-ISR(USART_RX_vect) {
-    char c = uart_getchar();
-    serialData.push(c);
 }

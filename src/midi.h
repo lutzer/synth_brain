@@ -1,11 +1,11 @@
 #ifndef MIDI_H
 #define MIDI_H
 
-typedef char byte;
+typedef unsigned char byte;
 
-#define MIDI_DATA_MAX_SIZE 10
+#define MIDI_DATA_MAX_SIZE 7
 
-enum MidiCommand {
+enum MidiCommand : unsigned char {
     Note_Off = 0x8,
     Note_On = 0x9,
     Aftertouch = 0xA,
@@ -23,8 +23,6 @@ class MidiMessage {
 
         byte channel();
         MidiCommand command();
-
-        const char* toString();
 };
 
 typedef void (*messageHandlerPtr)(MidiMessage);

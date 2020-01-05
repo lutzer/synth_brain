@@ -1,7 +1,8 @@
+#include "params.h"
+
 #include <avr/io.h>
 #include <string.h>
 #include "uart.h"
-#include "params.h"
 
 #ifndef BAUD
 #define BAUD 9600
@@ -39,7 +40,7 @@ void uart_putstring(const char *s) {
 }
 
 char uart_getchar() {
-    loop_until_bit_is_set(UCSR0A, RXC0);
+    //loop_until_bit_is_set(UCSR0A, RXC0);
     return UDR0;
 }
 

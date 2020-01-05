@@ -1,4 +1,4 @@
-#include "Ringbuffer.h"
+#include "ringbuffer.h"
 
 RingBuffer::RingBuffer(uchar maxSize) {
     this->maxSize = maxSize;

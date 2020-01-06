@@ -1,13 +1,26 @@
-#include "params.h"
-
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/atomic.h>
 #include <string.h>
+
+#ifdef DEBUG
+#include <stdio.h>
+#endif
+
 #include "uart.h"
+#include "params.h"
 #include "utils/Ringbuffer.h"
 
+#ifndef BAUD
+#define BAUD 9600
+#endif
+
+#ifndef UART_BUFFER_SIZE
+#define UART_BUFFER_SIZE 128
+#endif
+
 #include <util/setbaud.h>
+
 
 RingBuffer UART_BUFFER_RX0(UART_BUFFER_SIZE);
 
@@ -32,9 +45,16 @@ void uart_init() {
       
 }
 
+#ifdef DEBUG
 void uart_putchar(char c) {
     loop_until_bit_is_set(UCSR0A, UDRE0);
     UDR0 = c;
+}
+
+void uart_putfloat(float f) {
+    char msg[8] = "";
+    sprintf(msg, "%f", (double)f);
+    uart_putstring(msg);
 }
 
 void uart_putstring(const char *s) {
@@ -42,6 +62,7 @@ void uart_putstring(const char *s) {
         uart_putchar(s[i]);
     }
 }
+#endif
 
 char uart_getchar() {
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
@@ -52,7 +73,7 @@ char uart_getchar() {
 
 bool uart_data_available() {
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        return UART_BUFFER_RX0.empty();
+        return !UART_BUFFER_RX0.empty();
     }
     return 0;
 }

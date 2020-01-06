@@ -8,21 +8,21 @@ RingBuffer::RingBuffer(uchar maxSize) {
     this->buffer = new buffer_type[maxSize];
 }
 
-buffer_type RingBuffer::pop() {
+buffer_type RingBuffer::pop() volatile {
     char val = buffer[start];
     start = (start + 1) % maxSize;
     return val;
 }
 
-void RingBuffer::push(const buffer_type e) {
+void RingBuffer::push(const buffer_type e) volatile {
     buffer[end] = e;
     end = (end + 1) % maxSize;
 }
 
-bool RingBuffer::empty() {
-    return end != start;
+bool RingBuffer::empty() volatile {
+    return end == start;
 }
 
-uchar RingBuffer::size() {
+uchar RingBuffer::size() volatile {
     return (end - start + maxSize) % maxSize;
 }

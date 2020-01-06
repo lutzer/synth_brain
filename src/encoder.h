@@ -1,6 +1,9 @@
 #ifndef ENCODER_H
 #define ENCODER_H
 
+#define EXTERNAL_NUM_INTERRUPTS 2
+
+typedef unsigned char uchar;
 typedef void (*EncoderEventHandlerPtr)(int change);
 
 /*
@@ -8,7 +11,7 @@ typedef void (*EncoderEventHandlerPtr)(int change);
 */
 class Encoder {
 
-    long absolutePosition;
+    volatile long absolutePosition;
     long lastRead;
 
     EncoderEventHandlerPtr encoderChangeHandler;
@@ -22,7 +25,7 @@ class Encoder {
         int getAbsolute();
 
         // not for external use
-        void _process(char pinStates);
+        void _processInterrupt();
 
 };
 

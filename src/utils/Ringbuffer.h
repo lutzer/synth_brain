@@ -15,11 +15,11 @@ class RingBuffer {
     public:
         RingBuffer(uchar maxSize);
 
-        void push(buffer_type e);
-        buffer_type pop();
+        void push(buffer_type e) volatile;
+        buffer_type pop() volatile;
 
-        bool empty();
-        uchar size();
+        bool empty() volatile;
+        uchar size() volatile;
 };
 
 #endif

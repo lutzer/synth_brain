@@ -1,41 +1,39 @@
 #include "midi.h"
 
-char calculateMidiDataSize(byte status) {
-    switch (status >> 4) {
-        case MidiCommand::Channel_Pressure:
-        case MidiCommand::Patch_Change:
-            return 1;
-        case MidiCommand::Other_Command:
-            if (status == 0xF1 || status == 0xF3)
-                return 1;
-            else if (status == 0xF2)
-                return 2;
-            else
-                return 0;
-        default:
-            return 2;
-    }
-};
-
-bool filterMidiMessages(byte status) {
-    switch (status >> 4) {
+char calculateMidiDataSize(MidiCommand cmd) {
+    switch (cmd) {
         case MidiCommand::Note_On:
         case MidiCommand::Note_Off:
         case MidiCommand::Pitch_Bend:
-            return true;
-        case MidiCommand::Other_Command:
-            return status == 0xFF || status == 0xFC;
+            return 2;
+        case MidiCommand::System_Reset:
+            return 0;
+        // filter out all other messages
         default:
-            return false;
+            return -1;
     }
+};
+
+MidiMessage::MidiMessage() {
+    this->status = 0;
+    for(int i = 0;i < MIDI_DATA_MAX_SIZE; i++)
+        this->data[i] = 0;
 }
 
 MidiCommand MidiMessage::command() {
-    return (MidiCommand)(this->status >> 4);
+    return (MidiCommand)(this->status < 0xF0 ? status & 0xF0 : status);
 }
 
 byte MidiMessage::channel() {
     return this->status & 0x0F;
+}
+
+MidiMessage MidiMessage::clone() {
+    MidiMessage msg;
+    msg.status = this->status;
+    for(int i = 0;i < MIDI_DATA_MAX_SIZE; i++)
+        msg.data[i] = this->data[i];
+    return msg;
 }
 
 MidiReader::MidiReader(messageHandlerPtr handler) {
@@ -43,21 +41,19 @@ MidiReader::MidiReader(messageHandlerPtr handler) {
 }
 
 void MidiReader::parse(byte b) {
-    static unsigned char dataHead = 0, dataSize = 2;
+    static unsigned char dataHead = 0, dataSize = -1;
 
     if (b & 0x80) { //status byte
-        if (!filterMidiMessages(b))  // discard messages that we dont want to listen to
-            return;
-        this->message.status = b;
+        message.status = b;
         dataHead = 0;
-        dataSize = calculateMidiDataSize(b);
-    } else if (this->message.status) { // data byte
-        this->message.data[dataHead++] = b;
+        dataSize = calculateMidiDataSize(message.command());
+    } else if (dataSize > 0) { // data byte
+        message.data[dataHead++] = b;
     }
 
-    // if msg completed call callback
-    if (dataHead >= dataSize) {
-        this->messageHandler(this->message);
+    // if msg is complete call callback
+    if (dataSize > -1 && dataHead >= dataSize) {
+        this->messageHandler(message);
         dataHead = 0;
     }
 }

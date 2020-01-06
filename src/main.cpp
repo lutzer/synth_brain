@@ -1,8 +1,9 @@
-#include "params.h"
-
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
+
+#include "params.h"
+
 #include "uart.h"
 #include "midi.h"
 #include "encoder.h"
@@ -16,23 +17,21 @@ MidiReader *midiIn;
 Encoder *encoder;
 Voice *voice[2];
 
-void handleMidiMessage(MidiMessage message) {
+void onMidiMessage(MidiMessage message) {
     #ifdef DEBUG
-    char msg[16] = "";
-    sprintf(msg, "m:%i,%i %i,%i\n", message.command(), message.channel(), message.data[0], message.data[1]);
+    char msg[20] = "";
+    sprintf(msg, "m:%01X,%u %u,%u\n", message.command(), message.channel(), message.data[0], message.data[1]);
     uart_putstring(msg);
     #endif
 
-    for (int i = 0; i < 1; i++) {
+    for (int i = 0; i < 2; i++) {
         if (message.channel() == voice[i]->channel) {
             switch (message.command()) {
                 case MidiCommand::Note_On:
                     voice[i]->playNote(message.data[0]);
-                    PORTD |= _BV(LED1_PIN);
                     break;
                 case MidiCommand::Note_Off:
                     voice[i]->stopNote(message.data[0]);
-                    PORTD &= ~_BV(LED1_PIN);
                     break;
                 case MidiCommand::Pitch_Bend:
                     voice[i]->setPitchBend(0);
@@ -43,7 +42,22 @@ void handleMidiMessage(MidiMessage message) {
     }
 }
 
-void handleEncoderChange(int change) {
+void onGateChange(unsigned char gate, bool enabled) {
+    uart_putstring("gate triggered\n");
+    if (gate == 0) {
+        if (enabled)
+            PORTD |= _BV(GATE0_PIN);
+        else
+            PORTD &= ~_BV(GATE0_PIN);
+    } else if (gate == 1) {
+        if (enabled)
+            PORTD |= _BV(GATE1_PIN);
+        else
+            PORTD &= ~_BV(GATE1_PIN);
+    }
+}
+
+void onEncoderChange(int change) {
     #ifdef DEBUG
     char msg[10] = "";
     sprintf(msg, "ec:%i\n", change); 
@@ -54,15 +68,13 @@ void handleEncoderChange(int change) {
 int main(void) {
 
     // init gate pins
-    DDRD |= _BV(LED1_PIN);
-    DDRD |= _BV(LED2_PIN); 
+    DDRD |= _BV(GATE0_PIN);
+    DDRD |= _BV(GATE1_PIN); 
 
-    encoder = new Encoder(&handleEncoderChange);
-    midiIn = new MidiReader(&handleMidiMessage);
-    voice[0] = new Voice(0);
-    voice[1] = new Voice(1);
-
-    PORTD |= _BV(LED2_PIN); // turn on led2 after init
+    encoder = new Encoder(&onEncoderChange);
+    midiIn = new MidiReader(&onMidiMessage);
+    voice[0] = new Voice(0, &onGateChange);
+    voice[1] = new Voice(1, &onGateChange);
 
     uart_init(); // init serial
 

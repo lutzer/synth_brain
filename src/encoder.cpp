@@ -7,11 +7,30 @@
 
 #define MAX_INT_DIV2 INT32_MAX/2
 
-enum EncoderState : unsigned char {
-    CW_MIDDLE = 2, //10
-    CW_STEP = 3, //11
-    CCW_MIDDLE = 0, //00
-    CCW_STEP = 2 //10
+enum EncoderState : uchar {
+    CW_START = 0x01,
+    CW_STEP1 = 0x02,
+    CW_STEP2 = 0x03,
+    CW_FINAL = 0x10,
+
+    CCW_START = 0x04,
+    CCW_STEP1 = 0x05,
+    CCW_STEP3 = 0x06,
+    CCW_FINAL = 0x20,
+
+    UNDEFINED = 0x40,
+};
+
+uchar transitionTable[7][4] = {
+    { UNDEFINED, CCW_START, CW_START, UNDEFINED },  // init state -> 1,2
+
+    { CW_STEP1, UNDEFINED, UNDEFINED, UNDEFINED }, // cw start -> 0
+    { UNDEFINED, CW_STEP2, CW_START, UNDEFINED }, // cw step1 -> 1, <- 2
+    { CW_STEP1, UNDEFINED, UNDEFINED, CW_FINAL }, // cw step2 -> 3, <- 0
+
+    { CCW_STEP1, UNDEFINED, UNDEFINED, UNDEFINED }, // ccw start -> 0
+    { UNDEFINED, CCW_START, CCW_STEP3, UNDEFINED }, // ccw step1 -> 2, <- 0
+    { UNDEFINED, CCW_STEP1, UNDEFINED , CCW_FINAL } // ccw step2 -> 3, <- 2
 };
 
 Encoder *ENCODER_OBJECT = 0;
@@ -72,17 +91,16 @@ int Encoder::getAbsolute() {
 }
 
 void Encoder::_processInterrupt() {
-    static uchar prevState = 0;
+    static uchar state = 0;
 
-    uchar currentState = (PIND & _BV(PD3)) >> (PD3 - 1) | (PIND & _BV(PD2)) >> PD2;
+    uchar pins = (PIND & _BV(PD3)) >> (PD3 - 1) | (PIND & _BV(PD2)) >> PD2;
 
-    if (currentState == EncoderState::CW_STEP && prevState == EncoderState::CW_MIDDLE) {
+    state = transitionTable[state & 0x0F][pins];
+
+    if (state == 0x10)
         absolutePosition++;
-    } else if (currentState == EncoderState::CCW_STEP && prevState == EncoderState::CCW_MIDDLE) {
+    if (state == 0x20)
         absolutePosition--;
-    }
-
-    prevState = currentState;
 }
 
 ISR(INT0_vect)

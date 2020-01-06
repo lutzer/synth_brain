@@ -19,6 +19,10 @@ void RingBuffer::push(const buffer_type e) {
     end = (end + 1) % maxSize;
 }
 
+bool RingBuffer::empty() {
+    return end != start;
+}
+
 uchar RingBuffer::size() {
     return (end - start + maxSize) % maxSize;
 }

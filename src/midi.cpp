@@ -1,3 +1,10 @@
+/*
+ * @Author: Lutz Reiter - http://lu-re.de 
+ * @Date: 2020-01-06 19:13:50 
+ * @Last Modified by:   Lutz Reiter - http://lu-re.de 
+ * @Last Modified time: 2020-01-06 19:13:50 
+ */
+
 #include "midi.h"
 
 char calculateMidiDataSize(MidiCommand cmd) {
@@ -7,6 +14,7 @@ char calculateMidiDataSize(MidiCommand cmd) {
         case MidiCommand::Pitch_Bend:
             return 2;
         case MidiCommand::System_Reset:
+        case MidiCommand::Stop:
             return 0;
         // filter out all other messages
         default:

@@ -1,3 +1,10 @@
+/*
+ * @Author: Lutz Reiter - http://lu-re.de 
+ * @Date: 2020-01-06 19:14:02 
+ * @Last Modified by: Lutz Reiter - http://lu-re.de
+ * @Last Modified time: 2020-01-06 22:50:23
+ */
+
 #ifndef ENCODER_H
 #define ENCODER_H
 
@@ -7,7 +14,7 @@ typedef unsigned char uchar;
 typedef void (*EncoderEventHandlerPtr)(int change);
 
 /*
-* Encoder connected to two interupt pins PD2, PD3
+* Reads and debounces shaft encoder connected to the two interupt pins PD2, PD3
 */
 class Encoder {
 

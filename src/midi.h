@@ -1,3 +1,10 @@
+/*
+ * @Author: Lutz Reiter - http://lu-re.de 
+ * @Date: 2020-01-06 19:13:43 
+ * @Last Modified by:   Lutz Reiter - http://lu-re.de 
+ * @Last Modified time: 2020-01-06 19:13:43 
+ */
+
 #ifndef MIDI_H
 #define MIDI_H
 

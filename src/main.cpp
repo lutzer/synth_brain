@@ -1,15 +1,22 @@
+/*
+ * @Author: Lutz Reiter - http://lu-re.de 
+ * @Date: 2020-01-06 19:13:57 
+ * @Last Modified by: Lutz Reiter - http://lu-re.de
+ * @Last Modified time: 2020-01-06 23:19:07
+ */
+
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
 
 #include "params.h"
+#include "utils/macros.h"
 
 #include "uart.h"
 #include "midi.h"
 #include "encoder.h"
 #include "voice.h"
-
-#include "utils/macros.h"
+#include "trigger.h"
 
 #ifdef DEBUG
 #include <stdio.h>
@@ -18,6 +25,7 @@
 MidiReader *midiIn;
 Encoder *encoder;
 Voice *voice[2];
+OneShotTrigger *trigger;
 
 void onMidiMessage(MidiMessage message) {
     #ifdef DEBUG
@@ -26,9 +34,13 @@ void onMidiMessage(MidiMessage message) {
     uart_putstring(msg);
     #endif
 
+    byte cmd = message.command();
+
     for (int i = 0; i < 2; i++) {
-        if (message.channel() == voice[i]->channel) {
-            switch (message.command()) {
+        if (cmd == MidiCommand::System_Reset || cmd == MidiCommand::Stop) {
+            voice[i]->stopAll();
+        } else if (message.channel() == voice[i]->channel) {
+            switch (cmd) {
                 case MidiCommand::Note_On:
                     voice[i]->playNote(message.data[0]);
                     break;
@@ -44,19 +56,12 @@ void onMidiMessage(MidiMessage message) {
     }
 }
 
-void onGate0Change(bool enabled) {
-    if (enabled)
-        PORTD |= _BV(GATE0_PIN);
-    else
-        PORTD &= ~_BV(GATE0_PIN);
-}
-
-void onGate1Change(bool enabled) {
-    if (enabled)
-        PORTD |= _BV(GATE1_PIN);
-    else
-        PORTD &= ~_BV(GATE1_PIN);
-    
+void onGateChange(bool enabled) {
+    if (enabled) {
+        SET_PIN_HIGH(GATE_PIN);
+        trigger->fire();
+    } else
+        SET_PIN_LOW(GATE_PIN);
 }
 
 void onEncoderChange(int change) {
@@ -69,18 +74,19 @@ void onEncoderChange(int change) {
 
 int main(void) {
 
-    // init gate pins
-    DDRD |= _BV(GATE0_PIN);
-    DDRD |= _BV(GATE1_PIN); 
+    CONFIGURE_OUTPUT(GATE_PIN);
+    CONFIGURE_OUTPUT(TRIGGER_PIN);
 
     encoder = new Encoder(&onEncoderChange);
     midiIn = new MidiReader(&onMidiMessage);
-    voice[0] = new Voice(&onGate0Change);
-    voice[1] = new Voice(&onGate1Change);
-
+    voice[0] = new Voice(&onGateChange);
+    voice[1] = new Voice(&onGateChange);
+    
     uart_init(); // init serial
 
     sei(); // enable global interrupts
+
+    trigger = new OneShotTrigger(TRIGGER_PULSE_LENGTH);
 
     while (1)
     {

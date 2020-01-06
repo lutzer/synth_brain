@@ -1,3 +1,10 @@
+/*
+ * @Author: Lutz Reiter - http://lu-re.de 
+ * @Date: 2020-01-06 19:14:10 
+ * @Last Modified by:   Lutz Reiter - http://lu-re.de 
+ * @Last Modified time: 2020-01-06 19:14:10 
+ */
+
 #include "encoder.h"
 
 #include <avr/io.h>
@@ -74,7 +81,7 @@ int Encoder::getChange() {
     }   
     lastRead += delta;
 
-    // of reading is in bounds
+    // if reading is in bounds
     if (abs(delta) < MAX_INT_DIV2)
         return delta;
 

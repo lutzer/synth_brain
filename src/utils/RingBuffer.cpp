@@ -1,3 +1,10 @@
+/*
+ * @Author: Lutz Reiter - http://lu-re.de 
+ * @Date: 2020-01-06 19:14:26 
+ * @Last Modified by:   Lutz Reiter - http://lu-re.de 
+ * @Last Modified time: 2020-01-06 19:14:26 
+ */
+
 #include "ringbuffer.h"
 
 RingBuffer::RingBuffer(uchar maxSize) {

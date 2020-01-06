@@ -7,8 +7,8 @@
 #include <stdio.h>
 #endif
 
-#include "uart.h"
 #include "params.h"
+#include "uart.h"
 #include "utils/Ringbuffer.h"
 
 #ifndef BAUD
@@ -47,8 +47,10 @@ void uart_init() {
 
 #ifdef DEBUG
 void uart_putchar(char c) {
-    loop_until_bit_is_set(UCSR0A, UDRE0);
-    UDR0 = c;
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        loop_until_bit_is_set(UCSR0A, UDRE0);
+        UDR0 = c;
+    }
 }
 
 void uart_putfloat(float f) {

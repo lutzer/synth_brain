@@ -2,17 +2,35 @@
 
 #include "uart.h"
 
-Voice::Voice(uchar gate, GateChangeHandler gateHandler) {
+Voice::Voice(GateChangeHandler gateHandler) {
     this->channel = 0;
+    this->updated = false;
+    this->gateHandler = gateHandler;
 }
 
 void Voice::playNote(uchar note) {
-    this->gateHandler(this->gate, true);
-    //uart_putstring("### play note \n");
+    if (this->note != note || !this->gate) {
+        this->updated = true;
+    }
+    this->note = note;
+    this->gate = true;
 }
+
 void Voice::stopNote(uchar note) {
-    this->gateHandler(this->gate, false);
+    if (this->note == note) {
+        this->gate = false;
+        this->updated = true;
+    }
 }
+
 void Voice::setPitchBend(uint bend) {}
 
- void Voice::stopAll() {}
+void Voice::stopAll() {}
+
+void Voice::update() {
+    if (this->updated) {
+        this->gateHandler(this->gate);
+        this->updated = false;
+    }
+        
+}

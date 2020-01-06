@@ -9,6 +9,8 @@
 #include "encoder.h"
 #include "voice.h"
 
+#include "utils/macros.h"
+
 #ifdef DEBUG
 #include <stdio.h>
 #endif
@@ -42,19 +44,19 @@ void onMidiMessage(MidiMessage message) {
     }
 }
 
-void onGateChange(unsigned char gate, bool enabled) {
-    uart_putstring("gate triggered\n");
-    if (gate == 0) {
-        if (enabled)
-            PORTD |= _BV(GATE0_PIN);
-        else
-            PORTD &= ~_BV(GATE0_PIN);
-    } else if (gate == 1) {
-        if (enabled)
-            PORTD |= _BV(GATE1_PIN);
-        else
-            PORTD &= ~_BV(GATE1_PIN);
-    }
+void onGate0Change(bool enabled) {
+    if (enabled)
+        PORTD |= _BV(GATE0_PIN);
+    else
+        PORTD &= ~_BV(GATE0_PIN);
+}
+
+void onGate1Change(bool enabled) {
+    if (enabled)
+        PORTD |= _BV(GATE1_PIN);
+    else
+        PORTD &= ~_BV(GATE1_PIN);
+    
 }
 
 void onEncoderChange(int change) {
@@ -73,8 +75,8 @@ int main(void) {
 
     encoder = new Encoder(&onEncoderChange);
     midiIn = new MidiReader(&onMidiMessage);
-    voice[0] = new Voice(0, &onGateChange);
-    voice[1] = new Voice(1, &onGateChange);
+    voice[0] = new Voice(&onGate0Change);
+    voice[1] = new Voice(&onGate1Change);
 
     uart_init(); // init serial
 
@@ -87,6 +89,9 @@ int main(void) {
             char c = uart_getchar();
             midiIn->parse(c);
         }
+
+        voice[0]->update();
+        voice[1]->update();
 
         encoder->update();
     }

@@ -4,7 +4,7 @@
 typedef unsigned char uchar;
 typedef unsigned int uint;
 
-typedef void (*GateChangeHandler)(uchar gate, bool enabled);
+typedef void (*GateChangeHandler)(bool enabled);
 
 class Voice {
 
@@ -13,13 +13,18 @@ class Voice {
     public:
         uchar channel;
         uchar note;
+
+
         bool gate;
+        bool updated;
   
-        Voice(uchar gate, GateChangeHandler gateHandler/*,dac*/);
+        Voice(GateChangeHandler gateHandler/*,dac*/);
         void playNote(uchar note);
         void stopNote(uchar note);
         void setPitchBend(uint bend);
         void stopAll();
+
+        void update();
 };
 
 #endif

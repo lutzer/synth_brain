@@ -7,14 +7,6 @@
 #include "uart.h"
 #include "utils/Ringbuffer.h"
 
-#ifndef BAUD
-#define BAUD 9600
-#endif
-
-#ifndef UART_BUFFER_SIZE
-#define UART_BUFFER_SIZE 128
-#endif
-
 #include <util/setbaud.h>
 
 RingBuffer uart_buffer_rx0(UART_BUFFER_SIZE);

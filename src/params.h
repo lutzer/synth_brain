@@ -10,5 +10,6 @@
 
 // set baudrate for uart
 #define BAUD 31250
+#define UART_BUFFER_SIZE 128
 
 #endif

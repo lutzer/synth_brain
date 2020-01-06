@@ -1,4 +1,3 @@
-#include "params.h"
 #include "midi.h"
 
 char calculateMidiDataSize(byte status) {

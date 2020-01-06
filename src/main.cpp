@@ -73,8 +73,6 @@ int main(void) {
         // read midi data from rx port
         while (uart_data_available()) {
             char c = uart_getchar();
-            // uart_putchar(c);
-            // uart_putchar('.');
             midiIn->parse(c);
         }
 

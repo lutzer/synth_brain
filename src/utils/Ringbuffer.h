@@ -18,7 +18,7 @@ class RingBuffer {
         void push(buffer_type e);
         buffer_type pop();
 
-        char size();
+        uchar size();
 };
 
 #endif

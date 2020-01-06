@@ -1,7 +1,7 @@
 #include "params.h"
 #include "midi.h"
 
-char calculateDataSize(byte status) {
+char calculateMidiDataSize(byte status) {
     switch (status >> 4) {
         case MidiCommand::Channel_Pressure:
         case MidiCommand::Patch_Change:
@@ -17,6 +17,19 @@ char calculateDataSize(byte status) {
             return 2;
     }
 };
+
+bool filterMidiMessages(byte status) {
+    switch (status >> 4) {
+        case MidiCommand::Note_On:
+        case MidiCommand::Note_Off:
+        case MidiCommand::Pitch_Bend:
+            return true;
+        case MidiCommand::Other_Command:
+            return status == 0xFF || status == 0xFC;
+        default:
+            return false;
+    }
+}
 
 MidiCommand MidiMessage::command() {
     return (MidiCommand)(this->status >> 4);
@@ -34,9 +47,11 @@ void MidiReader::parse(byte b) {
     static unsigned char dataHead = 0, dataSize = 2;
 
     if (b & 0x80) { //status byte
+        if (!filterMidiMessages(b))  // discard messages that we dont want to listen to
+            return;
         this->message.status = b;
         dataHead = 0;
-        dataSize = calculateDataSize(b);
+        dataSize = calculateMidiDataSize(b);
     } else if (this->message.status) { // data byte
         this->message.data[dataHead++] = b;
     }

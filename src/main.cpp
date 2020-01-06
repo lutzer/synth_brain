@@ -3,25 +3,44 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
-#include "utils/Ringbuffer.h"
 #include "uart.h"
 #include "midi.h"
 #include "encoder.h"
+#include "voice.h"
 
 #ifdef DEBUG
 #include <stdio.h>
 #endif
 
-
 MidiReader *midiIn;
 Encoder *encoder;
+Voice *voice[2];
 
 void handleMidiMessage(MidiMessage message) {
     #ifdef DEBUG
-    char msg[20] = "";
-    sprintf(msg, "midi:%i,%i %i,%i\n", message.command(), message.channel(), message.data[0], message.data[1]); 
+    char msg[16] = "";
+    sprintf(msg, "m:%i,%i %i,%i\n", message.command(), message.channel(), message.data[0], message.data[1]);
     uart_putstring(msg);
     #endif
+
+    for (int i = 0; i < 1; i++) {
+        if (message.channel() == voice[i]->channel) {
+            switch (message.command()) {
+                case MidiCommand::Note_On:
+                    voice[i]->playNote(message.data[0]);
+                    PORTD |= _BV(LED1_PIN);
+                    break;
+                case MidiCommand::Note_Off:
+                    voice[i]->stopNote(message.data[0]);
+                    PORTD &= ~_BV(LED1_PIN);
+                    break;
+                case MidiCommand::Pitch_Bend:
+                    voice[i]->setPitchBend(0);
+                default:
+                    break;
+            }  
+        }
+    }
 }
 
 void handleEncoderChange(int change) {
@@ -39,24 +58,23 @@ int main(void) {
     DDRD |= _BV(LED2_PIN); 
 
     encoder = new Encoder(&handleEncoderChange);
+    midiIn = new MidiReader(&handleMidiMessage);
+    voice[0] = new Voice(0);
+    voice[1] = new Voice(1);
+
+    PORTD |= _BV(LED2_PIN); // turn on led2 after init
 
     uart_init(); // init serial
-
-    midiIn = new MidiReader(&handleMidiMessage);
-
-    PORTD |= _BV(LED1_PIN); // turn on led1 after init
-    PORTD &= ~_BV(LED2_PIN); // turn off led2
 
     sei(); // enable global interrupts
 
     while (1)
     {
-        //PORTD |= _BV(LED2_PIN); // turn on led2 when receiving
-
         // read midi data from rx port
         while (uart_data_available()) {
-            PORTD |= _BV(LED2_PIN); // turn on led2 when receiving
             char c = uart_getchar();
+            // uart_putchar(c);
+            // uart_putchar('.');
             midiIn->parse(c);
         }
 

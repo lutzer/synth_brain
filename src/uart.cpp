@@ -1,14 +1,23 @@
 #include "params.h"
 
 #include <avr/io.h>
+#include <avr/interrupt.h>
+#include <util/atomic.h>
 #include <string.h>
 #include "uart.h"
+#include "utils/Ringbuffer.h"
 
 #ifndef BAUD
 #define BAUD 9600
 #endif
 
+#ifndef UART_BUFFER_SIZE
+#define UART_BUFFER_SIZE 128
+#endif
+
 #include <util/setbaud.h>
+
+RingBuffer uart_buffer_rx0(UART_BUFFER_SIZE);
 
 void uart_init() {
     UBRR0H = UBRRH_VALUE;
@@ -25,6 +34,9 @@ void uart_init() {
     #endif
 
     UCSR0C = _BV(UCSZ01) | _BV(UCSZ00); /* 8-bit data */ 
+
+    // enable interrupts
+    UCSR0B |= (1 << RXCIE0);
       
 }
 
@@ -40,10 +52,21 @@ void uart_putstring(const char *s) {
 }
 
 char uart_getchar() {
-    //loop_until_bit_is_set(UCSR0A, RXC0);
-    return UDR0;
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        return uart_buffer_rx0.pop();
+    }
+    return 0;
 }
 
 bool uart_data_available() {
-    return UCSR0A & (1 << RXC0);
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        return uart_buffer_rx0.size() > 0;
+    }
+    return 0;
+}
+
+ISR(USART_RX_vect)
+{
+    char c = UDR0; // Fetch the received byte value into the variable "ByteReceived"
+    uart_buffer_rx0.push(c);
 }

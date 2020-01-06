@@ -9,7 +9,9 @@ RingBuffer::RingBuffer(uchar maxSize) {
 }
 
 buffer_type RingBuffer::pop() {
-    return buffer[start++];
+    char val = buffer[start];
+    start = (start + 1) % maxSize;
+    return val;
 }
 
 void RingBuffer::push(const buffer_type e) {
@@ -17,6 +19,6 @@ void RingBuffer::push(const buffer_type e) {
     end = (end + 1) % maxSize;
 }
 
-char RingBuffer::size() {
-    return (end - start) > 0 ? end - start : end + maxSize - start;
+uchar RingBuffer::size() {
+    return (end - start + maxSize) % maxSize;
 }

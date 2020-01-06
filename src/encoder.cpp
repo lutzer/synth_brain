@@ -3,6 +3,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <stdlib.h>
+#include <util/atomic.h>
 
 enum EncoderState : unsigned char {
     CW_MIDDLE = 2,
@@ -44,22 +45,29 @@ void Encoder::update() {
 }
 
 int Encoder::getChange() {
-    cli();
-    int delta = absolutePosition - lastRead;
-    sei();
+    int delta = 0;
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        delta = absolutePosition - lastRead;
+    }   
     lastRead += delta;
 
+    
     if (abs(delta) < 100)
         return delta;
-    else
-        return delta > 0 ? -1 : 1;
+
+    // if the maximum bounds of long is reached
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        absolutePosition = 0;
+    }
+    lastRead = 0;
+    return delta > 0 ? -1 : 1;
 }
 
 int Encoder::getAbsolute() {
     return this->absolutePosition;
 }
 
-void Encoder::process(char pinState) {
+void Encoder::_process(char pinState) {
     static EncoderState state = (EncoderState)0;
 
     if (pinState == EncoderState::CW_STEP && state == EncoderState::CW_MIDDLE) {
@@ -75,12 +83,12 @@ ISR(INT0_vect)
 {
     char pinState = (PIND & _BV(PD3)) >> (PD3 - 1) | (PIND & _BV(PD2)) >> PD2;
     if (globalInterruptReceivingEncoder)
-        globalInterruptReceivingEncoder->process(pinState);
+        globalInterruptReceivingEncoder->_process(pinState);
 }
 
 ISR(INT1_vect) 
 { 
     char pinState = (PIND & _BV(PD3)) >> (PD3 - 1) | (PIND & _BV(PD2)) >> PD2;
     if (globalInterruptReceivingEncoder)
-        globalInterruptReceivingEncoder->process(pinState);
+        globalInterruptReceivingEncoder->_process(pinState);
 }

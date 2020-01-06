@@ -6,7 +6,7 @@
 * modify platformio.ini to specify programmer. (see here: http://docs.platformio.org/en/latest/platforms/atmelavr.html#upload-using-programmer)
     * list serial ports with `ls /dev/tty.*`
 
-## Setup fused and burn bootloader
+## Setup fuses and burn bootloader
 
 Todo (done by arduino IDE for now)
 

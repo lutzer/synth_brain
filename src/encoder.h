@@ -8,8 +8,8 @@ typedef void (*EncoderEventHandlerPtr)(int change);
 */
 class Encoder {
 
-    int absolutePosition;
-    int lastRead;
+    long absolutePosition;
+    long lastRead;
 
     EncoderEventHandlerPtr encoderChangeHandler;
 
@@ -21,8 +21,8 @@ class Encoder {
         int getChange();
         int getAbsolute();
 
-
-        void process(char pinStates);
+        // not for external use
+        void _process(char pinStates);
 
 };
 

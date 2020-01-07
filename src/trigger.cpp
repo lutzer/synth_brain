@@ -2,7 +2,7 @@
  * @Author: Lutz Reiter - http://lu-re.de 
  * @Date: 2020-01-06 22:30:02 
  * @Last Modified by: Lutz Reiter - http://lu-re.de
- * @Last Modified time: 2020-01-06 23:19:13
+ * @Last Modified time: 2020-01-07 13:38:27
  */
 
 #include<avr/io.h>
@@ -10,7 +10,7 @@
 
 #include "trigger.h"
 
-#include "params.h"
+#include "config.h"
 #include "utils/macros.h"
 
 // choosing compare counter to make one overflow the length of ~10 ms, PULSE_LENGTH = F_CPU / PRESCALER / COMPARE_COUNTER
@@ -23,6 +23,8 @@
 int TIMER_OVERFLOWS = 1;
 
 OneShotTrigger::OneShotTrigger(unsigned int length) {
+
+    CONFIGURE_OUTPUT(TRIGGER_PIN);
 
     //count up to this val
     if (length > 20) {

@@ -1,8 +1,8 @@
 /*
  * @Author: Lutz Reiter - http://lu-re.de 
  * @Date: 2020-01-06 19:12:26 
- * @Last Modified by:   Lutz Reiter - http://lu-re.de 
- * @Last Modified time: 2020-01-06 19:12:26 
+ * @Last Modified by: Lutz Reiter - http://lu-re.de
+ * @Last Modified time: 2020-01-07 14:33:03
  */
 
 #ifndef VOICE_H
@@ -30,6 +30,8 @@ class Voice {
         void stopNote(uchar note);
         void setPitchBend(uint bend);
         void stopAll();
+
+        void setChannel(uchar channel);
 
         void update();
 };

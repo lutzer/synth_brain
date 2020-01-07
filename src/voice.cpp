@@ -2,7 +2,7 @@
  * @Author: Lutz Reiter - http://lu-re.de 
  * @Date: 2020-01-06 19:12:14 
  * @Last Modified by: Lutz Reiter - http://lu-re.de
- * @Last Modified time: 2020-01-06 19:13:20
+ * @Last Modified time: 2020-01-07 14:34:00
  */
 
 #include "voice.h"
@@ -35,6 +35,13 @@ void Voice::setPitchBend(uint bend) {}
 void Voice::stopAll() {
     this->gate = false;
     this->updated = true;
+}
+
+void Voice::setChannel(uchar channel) {
+    if (this->channel != channel) {
+        this->channel = channel;
+        this->stopAll();
+    }
 }
 
 void Voice::update() {

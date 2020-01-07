@@ -1,8 +1,8 @@
 /*
  * @Author: Lutz Reiter - http://lu-re.de 
  * @Date: 2020-01-06 19:13:35 
- * @Last Modified by:   Lutz Reiter - http://lu-re.de 
- * @Last Modified time: 2020-01-06 19:13:35 
+ * @Last Modified by: Lutz Reiter - http://lu-re.de
+ * @Last Modified time: 2020-01-07 15:00:02
  */
 
 #include <avr/io.h>
@@ -14,9 +14,9 @@
 #include <stdio.h>
 #endif
 
-#include "params.h"
+#include "config.h"
 #include "uart.h"
-#include "utils/Ringbuffer.h"
+#include "utils/ringbuffer.h"
 
 #ifndef BAUD
 #define BAUD 9600
@@ -29,7 +29,7 @@
 #include <util/setbaud.h>
 
 
-RingBuffer UART_BUFFER_RX0(UART_BUFFER_SIZE);
+RingBuffer<uchar> UART_BUFFER_RX0(UART_BUFFER_SIZE);
 
 void uart_init() {
     UBRR0H = UBRRH_VALUE;

@@ -2,11 +2,13 @@
  * @Author: Lutz Reiter - http://lu-re.de 
  * @Date: 2020-01-07 13:39:21 
  * @Last Modified by: Lutz Reiter - http://lu-re.de
- * @Last Modified time: 2020-01-07 15:55:08
+ * @Last Modified time: 2020-01-07 17:04:49
  */
 
 #ifndef DAC_H
 #define DAC_H
+
+#include <avr/io.h>
 
 typedef unsigned char uchar;
 

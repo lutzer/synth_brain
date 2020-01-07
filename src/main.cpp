@@ -2,7 +2,7 @@
  * @Author: Lutz Reiter - http://lu-re.de 
  * @Date: 2020-01-06 19:13:57 
  * @Last Modified by: Lutz Reiter - http://lu-re.de
- * @Last Modified time: 2020-01-07 16:39:57
+ * @Last Modified time: 2020-01-07 17:00:43
  */
 
 #include <avr/io.h>
@@ -66,18 +66,12 @@ void onGateChange(bool enabled) {
 }
 
 void onEncoderChange(int change) {
-    static uint16_t val = 0;
-
     #ifdef DEBUG
     debug_print("ec:%i\n", change);
     #endif
 
     voice[0]->setChannel(constrain((int)voice[0]->channel + change, 0, 15));
     voice[1]->setChannel(constrain((int)voice[1]->channel + change, 0, 15));
-
-    val += change * 100;
-    debug_print("dac: %u/n", val);
-    dac->send(0, val);
 
     #ifdef DEBUG
     debug_print("midi c1:%i, c2:%i\n", voice[0]->channel, voice[1]->channel);
@@ -91,11 +85,10 @@ int main(void) {
     dac = new Dac();
     encoder = new Encoder(&onEncoderChange);
     midiIn = new MidiReader(&onMidiMessage);
-    voice[0] = new Voice(&onGateChange);
-    voice[1] = new Voice(&onGateChange);
+    voice[0] = new Voice(&onGateChange, dac, 0);
+    voice[1] = new Voice(&onGateChange, dac, 1);
     trigger = new OneShotTrigger(TRIGGER_PULSE_LENGTH);
 
-    
     uart_init(); // init serial
 
     sei(); // enable global interrupts

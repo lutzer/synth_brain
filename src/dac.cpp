@@ -2,11 +2,11 @@
  * @Author: Lutz Reiter - http://lu-re.de 
  * @Date: 2020-01-07 13:39:16 
  * @Last Modified by: Lutz Reiter - http://lu-re.de
- * @Last Modified time: 2020-01-07 16:39:14
+ * @Last Modified time: 2020-01-07 17:30:39
  */
 
 #include <avr/io.h>
-#include <util/delay.h>
+#include <avr/interrupt.h>
 
 #include "dac.h"
 
@@ -15,14 +15,17 @@
 #include "utils/macros.h"
 #include "utils/math.h"
 
+uchar SPI_DATA_BUFFER[2];
+uchar SPI_DATA_BUFFER_COUNTER = 0;
+
 void spi_init_master() {
 
      //set spi pins as output (MOSI,SCK,SS)
     DDRB |= (1<<PB2) | (1<<PB3) | (1<<PB5);
 
 
-    // Enable SPI, Master, clock rate F_CPU/4 (clock rateF_CPU/16), (msb first)
-	SPCR = (1<<SPE) | (1<<MSTR) | (1<<SPR0)  /* (1<<DORD) */;
+    // Enable SPI, Master, clock rate F_CPU/2, (msb first)
+	SPCR = (1<<SPE) | (1<<MSTR) | (1<<SPI2X) /* | (1<<DORD) */;
 }
 
 void spi_transmit(char data) {
@@ -51,8 +54,8 @@ void Dac::send(uchar channel, uint16_t data) {
     else
         data &= ~(1 << DAC_CHANNEL_BIT);
 
-    // select gain 1x
-    data |= (1 << DAC_GAIN_BIT);
+    // select gain 2x
+    data &= ~(1 << DAC_GAIN_BIT);
 
     // enable output
     data |= (1 << DAC_SHDN_BIT);

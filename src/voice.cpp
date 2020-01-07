@@ -2,17 +2,20 @@
  * @Author: Lutz Reiter - http://lu-re.de 
  * @Date: 2020-01-06 19:12:14 
  * @Last Modified by: Lutz Reiter - http://lu-re.de
- * @Last Modified time: 2020-01-07 16:43:14
+ * @Last Modified time: 2020-01-07 17:05:19
  */
 
 #include "voice.h"
 
 #include "uart.h"
 
-Voice::Voice(GateChangeHandler gateHandler) {
+Voice::Voice(GateChangeHandler gateHandler, Dac *dac, uchar dacChannel) {
     this->channel = 0;
     this->updated = false;
     this->gateHandler = gateHandler;
+
+    this->dac = dac;
+    this->dacChannel = dacChannel;
 }
 
 void Voice::playNote(uchar note) {
@@ -48,6 +51,7 @@ void Voice::update() {
     if (this->updated) {
         this->gateHandler(this->gate);
         this->updated = false;
+        this->dac->send(this->dacChannel, this->note * 32);
     }
         
 }

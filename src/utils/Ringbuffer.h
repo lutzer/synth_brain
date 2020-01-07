@@ -2,7 +2,7 @@
  * @Author: Lutz Reiter - http://lu-re.de 
  * @Date: 2020-01-06 19:14:20 
  * @Last Modified by: Lutz Reiter - http://lu-re.de
- * @Last Modified time: 2020-01-07 14:56:37
+ * @Last Modified time: 2020-01-07 16:34:48
  */
 
 #ifndef RINGBUFFER_H

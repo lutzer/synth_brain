@@ -2,7 +2,7 @@
  * @Author: Lutz Reiter - http://lu-re.de 
  * @Date: 2020-01-06 19:14:26 
  * @Last Modified by: Lutz Reiter - http://lu-re.de
- * @Last Modified time: 2020-01-07 14:59:50
+ * @Last Modified time: 2020-01-07 16:34:39
  */
 
 #include "ringbuffer.h"
@@ -39,5 +39,5 @@ uchar RingBuffer<T>::size() volatile {
     return (end - start + maxSize) % maxSize;
 }
 
-// compile for float
+// compile for uchar
 template class RingBuffer<uchar>;

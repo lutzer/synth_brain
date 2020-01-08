@@ -1,8 +1,8 @@
 /*
  * @Author: Lutz Reiter - http://lu-re.de 
  * @Date: 2020-01-06 19:13:43 
- * @Last Modified by:   Lutz Reiter - http://lu-re.de 
- * @Last Modified time: 2020-01-06 19:13:43 
+ * @Last Modified by: Lutz Reiter - http://lu-re.de
+ * @Last Modified time: 2020-01-07 19:29:32
  */
 
 #ifndef MIDI_H
@@ -50,14 +50,12 @@ class MidiMessage {
 typedef void (*messageHandlerPtr)(MidiMessage);
 
 class MidiReader {
-
     messageHandlerPtr messageHandler = 0;
     MidiMessage message;
 
     public:
         MidiReader(messageHandlerPtr handler);
         void parse(byte b);
-
 };
 
 #endif

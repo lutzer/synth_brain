@@ -21,7 +21,7 @@ class Dac {
         Dac();
 
         // Sends data to dac, range is 0 - 4095 (12 bit)
-        void send(uchar channel, uint16_t value);
+        void send(uchar channel, uint16_t data);
 };
 
 #endif

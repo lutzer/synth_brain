@@ -2,7 +2,7 @@
  * @Author: Lutz Reiter - http://lu-re.de 
  * @Date: 2020-01-06 22:30:02 
  * @Last Modified by: Lutz Reiter - http://lu-re.de
- * @Last Modified time: 2020-01-07 17:54:22
+ * @Last Modified time: 2020-01-08 01:34:46
  */
 
 #include <avr/io.h>
@@ -20,11 +20,10 @@
 // set prescaler of clock/1024
 #define PRESCALER _BV(CS02) | _BV(CS00)
 
-int TIMER_OVERFLOWS = 1;
+volatile int TIMER_OVERFLOWS = 1;
 
 OneShotTrigger::OneShotTrigger(unsigned int length) {
-
-    CONFIGURE_OUTPUT(TRIGGER_PIN);
+    configure_output(TRIGGER_PIN);
 
     //count up to this val
     if (length > 20) {
@@ -44,12 +43,13 @@ OneShotTrigger::OneShotTrigger(unsigned int length) {
 
 void OneShotTrigger::fire() {
     // reset timer
-    TCNT0 = 0;
+    TCNT0 = 0x0;
+
     // start 
     TCCR0B = PRESCALER;
 
     // start trigger pulse
-    SET_PIN_HIGH(TRIGGER_PIN);
+    set_pin_high(TRIGGER_PIN);
 }
 
 ISR (TIMER0_COMPA_vect) 
@@ -59,7 +59,7 @@ ISR (TIMER0_COMPA_vect)
 
     if (overflows == 0) {
         // stop trigger pulse
-        SET_PIN_LOW(TRIGGER_PIN);
+        set_pin_low(TRIGGER_PIN);
         // stop timer
         TCCR0B = 0;
     }

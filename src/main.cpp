@@ -18,12 +18,13 @@
 #include "voice.h"
 #include "trigger.h"
 #include "dac.h"
+#include "state.h"
 
 #ifdef DEBUG
-#include <stdio.h>
 #include "utils/debug.h"
 #endif
 
+State *state;
 MidiReader *midiIn;
 Encoder *encoder;
 Voice *voice[2];
@@ -59,10 +60,10 @@ void onMidiMessage(MidiMessage message) {
 
 void onGateChange(bool enabled) {
     if (enabled) {
-        SET_PIN_HIGH(GATE_PIN);
+        set_pin_high(GATE_PIN);
         trigger->fire();
     } else
-        SET_PIN_LOW(GATE_PIN);
+        set_pin_low(GATE_PIN);
 }
 
 void onEncoderChange(int change) {
@@ -79,19 +80,29 @@ void onEncoderChange(int change) {
 }
 
 int main(void) {
+    // load settings
+    state = new State();
 
-    CONFIGURE_OUTPUT(GATE_PIN);
+    // configure single pins
+    configure_output(GATE_PIN);
 
-    dac = new Dac();
+    // configure inputs
     encoder = new Encoder(&onEncoderChange);
     midiIn = new MidiReader(&onMidiMessage);
-    voice[0] = new Voice(&onGateChange, dac, 0);
-    voice[1] = new Voice(&onGateChange, dac, 1);
+
+    // configure outputs
+    dac = new Dac();
     trigger = new OneShotTrigger(TRIGGER_PULSE_LENGTH);
 
-    uart_init(); // init serial
+    // init the two oscillators
+    voice[0] = new Voice(dac, 0, &onGateChange);
+    voice[1] = new Voice(dac, 1, &onGateChange);
 
-    sei(); // enable global interrupts
+    // init serial
+    uart_init();
+
+    // enable global interrupts
+    sei();
 
     while (1)
     {

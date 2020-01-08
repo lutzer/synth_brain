@@ -20,10 +20,10 @@
 #define DAC_SHDN_BIT 12 // 0 = no output, 1 = output
 
 Dac::Dac() {
-    CONFIGURE_OUTPUT(DAC_CS_PIN);
+    configure_input(DAC_CS_PIN);
 
     // disable slave
-    SET_PIN_HIGH(DAC_CS_PIN);
+    set_pin_high(DAC_CS_PIN);
 
     spi_init_master();
 } 
@@ -43,14 +43,14 @@ void Dac::send(uchar channel, uint16_t data) {
     data |= (1 << DAC_SHDN_BIT);
 
     // pull cs low
-    SET_PIN_LOW(DAC_CS_PIN);
+    set_pin_low(DAC_CS_PIN);
 
     // transmit data
     spi_transmit(data >> 8); // 1st byte
     spi_transmit(data); // 2nd byte
 
     // pull cs high
-    SET_PIN_HIGH(DAC_CS_PIN);
+    set_pin_high(DAC_CS_PIN);
 
 }
 

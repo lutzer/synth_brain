@@ -2,7 +2,7 @@
  * @Author: Lutz Reiter - http://lu-re.de 
  * @Date: 2020-01-06 19:13:35 
  * @Last Modified by: Lutz Reiter - http://lu-re.de
- * @Last Modified time: 2020-01-07 15:00:02
+ * @Last Modified time: 2020-01-07 18:35:07
  */
 
 #include <avr/io.h>
@@ -89,6 +89,6 @@ bool uart_data_available() {
 
 ISR(USART_RX_vect)
 {
-    char c = UDR0; // Fetch the received byte value into the variable "ByteReceived"
+    char c = UDR0;
     UART_BUFFER_RX0.push(c);
 }

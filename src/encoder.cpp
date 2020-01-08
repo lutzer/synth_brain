@@ -12,6 +12,9 @@
 #include <stdlib.h>
 #include <util/atomic.h>
 
+#include "config.h"
+#include "utils/macros.h"
+
 #define MAX_INT_DIV2 INT32_MAX/2
 
 enum EncoderState : uchar {
@@ -47,11 +50,12 @@ Encoder::Encoder(EncoderEventHandlerPtr handler) {
     ENCODER_OBJECT = this;
 
     // set PD2 and PD3 as input
-    DDRD &= ~(1 << PD2);				
-    DDRD &= ~(1 << PD3); 
+    configure_input(ENCODER_PIN1);
+    configure_input(ENCODER_PIN2);
 
     // enable pullup
-    PORTD |= (1 << PD3) | (1 << PD2);
+    set_pin_high(ENCODER_PIN1);
+    set_pin_high(ENCODER_PIN2);
 
     // react to raise and fall on both interrupts
     EICRA |= (1<<ISC00);
@@ -100,7 +104,7 @@ int Encoder::getAbsolute() {
 void Encoder::_processInterrupt() {
     static uchar state = 0;
 
-    uchar pins = (PIND & _BV(PD3)) >> (PD3 - 1) | (PIND & _BV(PD2)) >> PD2;
+    uchar pins = (PIND & _BV(ENCODER_PIN1)) >> (ENCODER_PIN1 - 1) | (PIND & _BV(ENCODER_PIN2)) >> ENCODER_PIN2;
 
     state = transitionTable[state & 0x0F][pins];
 

@@ -2,7 +2,7 @@
  * @Author: Lutz Reiter - http://lu-re.de 
  * @Date: 2020-01-07 18:05:09 
  * @Last Modified by: Lutz Reiter - http://lu-re.de
- * @Last Modified time: 2020-01-07 18:05:38
+ * @Last Modified time: 2020-01-07 19:29:13
  */
 
 #include <avr/io.h>
@@ -10,7 +10,6 @@
 #include "spi.h"
 
 void spi_init_master() {
-
      //set spi pins as output (MOSI,SCK,SS)
     DDRB |= (1<<PB2) | (1<<PB3) | (1<<PB5);
 

@@ -2,7 +2,7 @@
  * @Author: Lutz Reiter - http://lu-re.de 
  * @Date: 2020-01-06 19:13:57 
  * @Last Modified by: Lutz Reiter - http://lu-re.de
- * @Last Modified time: 2020-01-09 09:50:25
+ * @Last Modified time: 2020-01-09 14:54:03
  */
 
 #include <avr/io.h>
@@ -56,13 +56,14 @@ void onGateChange(bool enabled) {
         set_pin_low(GATE_PIN);
 }
 
-void onButtonChange(uchar id, bool pushed) {
+void onButtonChange(uchar changes, uchar pushed) {
     #ifdef DEBUG
-    debug_print("button %i:%i\n", id, pushed);
+    debug_print("button %01X:%01X\n", changes, pushed);
     #endif
 
-    if (id == 0 && pushed)
+    if (changes & _BV(ENCODER_BUTTON) && pushed & _BV(ENCODER_BUTTON))
         state->encoder_push();
+        
 }
 
 void onEncoderChange(int change) {

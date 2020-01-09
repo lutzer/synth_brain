@@ -20,7 +20,7 @@
 #define DAC_SHDN_BIT 12 // 0 = no output, 1 = output
 
 Dac::Dac() {
-    configure_input(DAC_CS_PIN);
+    configure_output(DAC_CS_PIN);
 
     // disable slave
     set_pin_high(DAC_CS_PIN);

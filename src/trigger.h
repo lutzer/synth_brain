@@ -14,8 +14,9 @@
 class OneShotTrigger {
     public:
         OneShotTrigger(unsigned int length /* in ms */);
-        OneShotTrigger(unsigned int length, volatile uint8_t *cPort, volatile uint8_t *cDDR, uint8_t pin);
         void fire();
+
+        static volatile int _static_timer_overflows;
 };
 
 #endif

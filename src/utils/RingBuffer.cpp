@@ -17,25 +17,25 @@ RingBuffer<T>::RingBuffer(uchar maxSize) {
 }
 
 template <typename T> 
-T RingBuffer<T>::pop() volatile {
+T RingBuffer<T>::pop() {
     T val = buffer[start];
     start = (start + 1) % maxSize;
     return val;
 }
 
 template <typename T> 
-void RingBuffer<T>::push(const T e) volatile {
+void RingBuffer<T>::push(const T e) {
     buffer[end] = e;
     end = (end + 1) % maxSize;
 }
 
 template <typename T> 
-bool RingBuffer<T>::empty() volatile {
+bool RingBuffer<T>::empty() {
     return end == start;
 }
 
 template <typename T>
-uchar RingBuffer<T>::size() volatile {
+uchar RingBuffer<T>::size() {
     return (end - start + maxSize) % maxSize;
 }
 

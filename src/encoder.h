@@ -17,8 +17,6 @@ typedef void (*EncoderEventHandlerPtr)(int change);
 * Reads and debounces shaft encoder connected to the two interupt pins PD2, PD3
 */
 class Encoder {
-
-    volatile long absolutePosition;
     long lastRead;
 
     EncoderEventHandlerPtr encoderChangeHandler;
@@ -31,9 +29,7 @@ class Encoder {
         int getChange();
         int getAbsolute();
 
-        // not for external use
-        void _processInterrupt();
-
+        static volatile long _static_encoder_absolute_position;
 };
 
 #endif

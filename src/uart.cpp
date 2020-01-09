@@ -29,7 +29,7 @@
 #include <util/setbaud.h>
 
 
-RingBuffer<uchar> UART_BUFFER_RX0(UART_BUFFER_SIZE);
+RingBuffer<uchar> _static_uart_buffer_rx0(UART_BUFFER_SIZE);
 
 void uart_init() {
     UBRR0H = UBRRH_VALUE;
@@ -75,14 +75,14 @@ void uart_putstring(const char *s) {
 
 char uart_getchar() {
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        return UART_BUFFER_RX0.pop();
+        return _static_uart_buffer_rx0.pop();
     }
     return 0;
 }
 
 bool uart_data_available() {
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        return !UART_BUFFER_RX0.empty();
+        return !_static_uart_buffer_rx0.empty();
     }
     return 0;
 }
@@ -90,5 +90,5 @@ bool uart_data_available() {
 ISR(USART_RX_vect)
 {
     char c = UDR0;
-    UART_BUFFER_RX0.push(c);
+    _static_uart_buffer_rx0.push(c);
 }

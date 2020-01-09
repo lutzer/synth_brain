@@ -20,7 +20,7 @@
 // set prescaler of clock/1024
 #define PRESCALER _BV(CS02) | _BV(CS00)
 
-volatile int TIMER_OVERFLOWS = 1;
+volatile int OneShotTrigger::_static_timer_overflows = 1;
 
 OneShotTrigger::OneShotTrigger(unsigned int length) {
     configure_output(TRIGGER_PIN);
@@ -28,10 +28,10 @@ OneShotTrigger::OneShotTrigger(unsigned int length) {
     //count up to this val
     if (length > 20) {
         OCR0A = COMPARE_COUNTER_100TH;
-        TIMER_OVERFLOWS = length / 10;
+        OneShotTrigger::_static_timer_overflows = length / 10;
     } else {
         OCR0A = COMPARE_COUNTER_1000TH;
-        TIMER_OVERFLOWS = length;
+        OneShotTrigger::_static_timer_overflows = length;
     }
 
     // ctc mode
@@ -52,10 +52,11 @@ void OneShotTrigger::fire() {
     set_pin_high(TRIGGER_PIN);
 }
 
+// TODO: use free running timer and two comparators
 ISR (TIMER0_COMPA_vect) 
 {
     static unsigned char overflows = 0;
-    overflows = (overflows + 1) % TIMER_OVERFLOWS;
+    overflows = (overflows + 1) % OneShotTrigger::_static_timer_overflows;
 
     if (overflows == 0) {
         // stop trigger pulse

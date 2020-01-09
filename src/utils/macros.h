@@ -10,4 +10,7 @@
 #define configure_input(pin) {pin ## _DDR &= ~(1 << pin);}
 #define configure_output(pin) {pin ## _DDR |= (1 << pin);}
 
+// macros for reading pins
+#define read_pin(pin) (pin ## _REG & (1 << pin))
+
 #endif

@@ -13,21 +13,20 @@ typedef unsigned char uchar;
 
 template<typename T> 
 class RingBuffer {
-
-    uchar start;
-    uchar end;
     uchar maxSize;
 
-    T *buffer;
+    volatile uchar start;
+    volatile uchar end;
+    volatile T *buffer;
 
     public:
         RingBuffer<T>(uchar maxSize);
 
-        void push(T e) volatile;
-        T pop() volatile;
+        void push(T e);
+        T pop();
 
-        bool empty() volatile;
-        uchar size() volatile;
+        bool empty();
+        uchar size();
 };
 
 #endif

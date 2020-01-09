@@ -43,11 +43,9 @@ uchar transitionTable[7][4] = {
     { UNDEFINED, CCW_STEP1, UNDEFINED , CCW_FINAL } // ccw step2 -> 3, <- 2
 };
 
-Encoder *ENCODER_OBJECT = 0;
+volatile long Encoder::_static_encoder_absolute_position = 0;
 
 Encoder::Encoder(EncoderEventHandlerPtr handler) {
-
-    ENCODER_OBJECT = this;
 
     // set PD2 and PD3 as input
     configure_input(ENCODER_PIN1);
@@ -57,20 +55,17 @@ Encoder::Encoder(EncoderEventHandlerPtr handler) {
     set_pin_high(ENCODER_PIN1);
     set_pin_high(ENCODER_PIN2);
 
-    // react to raise and fall on both interrupts
-    EICRA |= (1<<ISC00);
-    EICRA |= (1<<ISC10);
+    // enable interrupts on portc
+    PCICR |= (1 << PCIE1);
 
-    // enable interrupts
-    EIMSK |= (1<<INT0) | (1<<INT1);
+    // enable change interrupts on pins
+    PCMSK1 |= (1 << PCINT8) | (1 << PCINT9);
 
     // register change handler
     encoderChangeHandler = handler;
 
     // init encoder position
-    absolutePosition = 0;
-    lastRead = absolutePosition;
-
+    lastRead = Encoder::_static_encoder_absolute_position;
 }
 
 void Encoder::update() {
@@ -79,9 +74,9 @@ void Encoder::update() {
 }
 
 int Encoder::getChange() {
-    long delta = 0;
+    int delta = 0;
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        delta = absolutePosition - lastRead;
+        delta = Encoder::_static_encoder_absolute_position - lastRead;
     }   
     lastRead += delta;
 
@@ -91,35 +86,30 @@ int Encoder::getChange() {
 
     // if the maximum bounds of long is reached, reset position
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        absolutePosition = 0;
+        Encoder::_static_encoder_absolute_position = 0;
         lastRead = 0;
     }
     return delta > 0 ? -1 : 1;
 }
 
 int Encoder::getAbsolute() {
-    return this->absolutePosition;
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        return Encoder::_static_encoder_absolute_position;
+    }
+    return 0;
 }
 
-void Encoder::_processInterrupt() {
+ISR(PCINT1_vect) {
     static uchar state = 0;
 
-    uchar pins = (PIND & _BV(ENCODER_PIN1)) >> (ENCODER_PIN1 - 1) | (PIND & _BV(ENCODER_PIN2)) >> ENCODER_PIN2;
+    uchar pins = 
+        (ENCODER_PIN1_REG & _BV(ENCODER_PIN1)) >> (ENCODER_PIN1 - 1) 
+        | (ENCODER_PIN2_REG & _BV(ENCODER_PIN2)) >> ENCODER_PIN2;
 
     state = transitionTable[state & 0x0F][pins];
 
     if (state == 0x10)
-        absolutePosition++;
+        Encoder::_static_encoder_absolute_position++;
     if (state == 0x20)
-        absolutePosition--;
-}
-
-ISR(INT0_vect)
-{
-    ENCODER_OBJECT->_processInterrupt();
-}
-
-ISR(INT1_vect) 
-{ 
-    ENCODER_OBJECT->_processInterrupt();
+        Encoder::_static_encoder_absolute_position--;
 }

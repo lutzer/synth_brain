@@ -1,34 +1,64 @@
+/*
+ * @Author: Lutz Reiter - http://lu-re.de 
+ * @Date: 2020-01-09 09:36:02 
+ * @Last Modified by: Lutz Reiter - http://lu-re.de
+ * @Last Modified time: 2020-01-09 09:53:33
+ */
+
 #ifndef STATE_H
 #define STATE_H
 
+#include "midi.h"
+
 typedef unsigned char uchar;
 
-enum UiState : uchar {
-    INIT = 0x0,
-    CONTROL_CHANNEL1 = 0x1,
-    CONTROL_CHANNEL2 = 0x2,
-    CONTROL_MODE = 0x3,
-    CALIBRATE_LOW = 0x4,
-    CALIBRATE_HIGH = 0x5
+enum CtrlState : uchar {
+    INIT,
+
+    CONTROL_CHANNEL1,
+    CONTROL_CHANNEL1_SET,
+
+    CONTROL_CHANNEL2,
+    CONTROL_CHANNEL2_SET,
+
+    CONTROL_MIDI_MODE,
+    CONTROL_MIDI_MODE_SET,
+
+    CALIBRATE_LOW,
+    CALIBRATE_LOW_SET,
+    
+    CALIBRATE_HIGH,
+    CALIBRATE_HIGH_SET
 };
 
-enum MidiMode : uchar {
-    SPLIT = 0x0,
-    MONOPHONIC = 0x1,
-    PARAPHONIC = 0x2
+enum ActionName : uchar {
+    ENCODER_CW,
+    ENCODER_CCW,
+    ENCODER_PUSH
 };
 
-class State {
+struct State {
+    CtrlState status = INIT;
+    MidiMode midiMode = SPLIT;
+    uchar midiChannels[2] = {0x0, 0x1};
+    uint16_t calibration[2] = { 0, 4095 };
+};
+
+class Statemachine {
+
+    bool reducer(ActionName action);
+
     public:
-        UiState ui = INIT;
+        // statedata
+        State state;
 
-        MidiMode midiMode = SPLIT;
-        uchar midiChannels[2] = {0x0, 0x1};
+        // loads/saves in eeprom  
+        void load();
+        void save();
 
-        uint16_t calibration[2] = { 0, 4095 };
-
-        void loadSettings();
-        void saveSettings();
+        // actions
+        void encoder_push() {}
+        void encoder_turn(uchar change) {}
 };
 
 #endif

@@ -2,7 +2,7 @@
  * @Author: Lutz Reiter - http://lu-re.de 
  * @Date: 2020-01-06 19:13:57 
  * @Last Modified by: Lutz Reiter - http://lu-re.de
- * @Last Modified time: 2020-01-07 17:51:02
+ * @Last Modified time: 2020-01-09 09:50:25
  */
 
 #include <avr/io.h>
@@ -19,14 +19,19 @@
 #include "trigger.h"
 #include "dac.h"
 #include "state.h"
+#include "button.h"
 
 #ifdef DEBUG
 #include "utils/debug.h"
 #endif
 
-State *state;
+Statemachine *state;
 MidiReader *midiIn;
+MidiHandler *midiHandler;
+
 Encoder *encoder;
+Buttons *buttons;
+
 Voice *voice[2];
 Dac *dac;
 OneShotTrigger *trigger;
@@ -36,29 +41,14 @@ void onMidiMessage(MidiMessage message) {
     debug_print("m:%01X,%u %u,%u\n", message.command(), message.channel(), message.data[0], message.data[1]);
     #endif
 
-    byte cmd = message.command();
-
-    for (int i = 0; i < 2; i++) {
-        if (cmd == MidiCommand::System_Reset) {
-            voice[i]->stopAll();
-        } else if (message.channel() == voice[i]->channel) {
-            switch (cmd) {
-                case MidiCommand::Note_On:
-                    voice[i]->playNote(message.data[0]);
-                    break;
-                case MidiCommand::Note_Off:
-                    voice[i]->stopNote(message.data[0]);
-                    break;
-                case MidiCommand::Pitch_Bend:
-                    voice[i]->setPitchBend(0);
-                default:
-                    break;
-            }  
-        }
-    }
+    midiHandler->handle(message);
 }
 
 void onGateChange(bool enabled) {
+    #ifdef DEBUG
+    debug_print("gate %i\n", enabled);
+    #endif
+
     if (enabled) {
         set_pin_high(GATE_PIN);
         trigger->fire();
@@ -66,43 +56,56 @@ void onGateChange(bool enabled) {
         set_pin_low(GATE_PIN);
 }
 
+void onButtonChange(uchar id, bool pushed) {
+    #ifdef DEBUG
+    debug_print("button %i:%i\n", id, pushed);
+    #endif
+
+    if (id == 0 && pushed)
+        state->encoder_push();
+}
+
 void onEncoderChange(int change) {
     #ifdef DEBUG
     debug_print("ec:%i\n", change);
     #endif
 
-    voice[0]->setChannel(constrain((int)voice[0]->channel + change, 0, 15));
-    voice[1]->setChannel(constrain((int)voice[1]->channel + change, 0, 15));
-
-    #ifdef DEBUG
-    debug_print("midi c1:%i, c2:%i\n", voice[0]->channel, voice[1]->channel);
-    #endif
+    state->encoder_turn(change);
 }
 
 int main(void) {
-    // load settings
-    state = new State();
+    uart_init();
 
-    // configure single pins
-    configure_output(GATE_PIN);
+    // load settings
+    state = new Statemachine();
 
     // configure inputs
     encoder = new Encoder(&onEncoderChange);
-    midiIn = new MidiReader(&onMidiMessage);
-
+    buttons = new Buttons(&onButtonChange);
+    
     // configure outputs
-    dac = new Dac();
+    configure_output(GATE_PIN);
     trigger = new OneShotTrigger(TRIGGER_PULSE_LENGTH);
 
     // init the two oscillators
+    dac = new Dac();
     voice[0] = new Voice(dac, 0, &onGateChange);
     voice[1] = new Voice(dac, 1, &onGateChange);
 
-    // init serial
-    uart_init();
+    // init midi handler
+    midiHandler = new MidiHandler();
+    midiHandler->addVoice(voice[0]);
+    midiHandler->addVoice(voice[1]);
+
+    // init midi
+    midiIn = new MidiReader(&onMidiMessage);
 
     // enable global interrupts
     sei();
+
+    #ifdef DEBUG
+    debug_print("initialized\n");
+    #endif
 
     while (1)
     {
@@ -116,6 +119,7 @@ int main(void) {
         voice[1]->update();
 
         encoder->update();
+        buttons->update();
     }
     return 0;
 }

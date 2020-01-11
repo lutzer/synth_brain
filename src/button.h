@@ -1,3 +1,10 @@
+/*
+ * @Author: Lutz Reiter - http://lu-re.de 
+ * @Date: 2020-01-09 16:59:10 
+ * @Last Modified by:   Lutz Reiter - http://lu-re.de 
+ * @Last Modified time: 2020-01-09 16:59:10 
+ */
+
 #ifndef BUTTON_H
 #define BUTTON_H
 
@@ -20,7 +27,7 @@ class Buttons {
         Buttons(ButtonsChangeHandler handler);
         void update();
 
-        // holds 8x4 bit counters, max = 15
+        // holds 8x2 bit counters, max = 15
         static volatile uint32_t _static_counters;
 };
 

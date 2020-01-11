@@ -13,7 +13,7 @@
 #define TRIGGER_PIN_PORT PORTD
 #define TRIGGER_PIN_DDR DDRD
 
-#define DAC_CS_PIN PB1
+#define DAC_CS_PIN PB2
 #define DAC_CS_PIN_PORT PORTB
 #define DAC_CS_PIN_DDR DDRB
 

@@ -10,7 +10,7 @@
 
 | Pin  | Avr Pin | Usage               |
 | ---- | ------- | ------------------- |
-| 1    | PC6     | *ISP Reset*         |
+| 1    | PC6     | ISP Reset           |
 | 2    | PD0     | Midi in             |
 | 3    | PD1     | *Debugging*         |
 | 4    | PD2     | Auto Tune In 1      |
@@ -24,8 +24,8 @@
 | 12   | PD6     | Gate                |
 | 13   | PD7     | Trigger             |
 | 14   | PB0     |                     |
-| 15   | PB1     | CS: DAC             |
-| 16   | PB2     | *SPI SS*            |
+| 15   | PB1     |                     |
+| 16   | PB2     | CS: DAC             |
 | 17   | PB3     | SPI MOSI: DAC / ISP |
 | 18   | PB4     | *SPI MISO: ISP*     |
 | 19   | PB5     | SPI SCK: DAC / ISP  |

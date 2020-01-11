@@ -32,8 +32,7 @@ enum CtrlState : uchar {
 };
 
 enum ActionName : uchar {
-    ENCODER_CW,
-    ENCODER_CCW,
+    ENCODER_TURN,
     ENCODER_PUSH
 };
 
@@ -46,15 +45,15 @@ struct State {
 
 class Statemachine {
 
-    bool reducer(ActionName action);
+    void reducer(ActionName action, int param) {}
 
     public:
         // statedata
         State state;
 
         // loads/saves in eeprom  
-        void load();
-        void save();
+        void load() {}
+        void save() {}
 
         // actions
         void encoder_push() {}

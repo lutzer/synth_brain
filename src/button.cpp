@@ -16,7 +16,7 @@
 #include "utils/math.h"
 #include "utils/debug.h"
 
-#define COUNTER_OVERFLOWS 78 // with a clock division of 1024 that should roughly be 4 ms
+#define COUNTER_OVERFLOWS 20 // how many overflows for one tick of the 2bit counter to debounce
 
 volatile uint32_t Buttons::_static_counters = 0;
 
@@ -65,8 +65,8 @@ void Buttons::update() {
 
 ISR (TIMER2_OVF_vect) {
     unsigned static int overflows = 0;
+    overflows++;
 
-    // is called every 4 ms
     if (overflows % COUNTER_OVERFLOWS == 0) {
         uint8_t low = Buttons::_static_counters;
         uint8_t high = Buttons::_static_counters >> 8;

@@ -20,6 +20,7 @@
 #include "dac.h"
 #include "state.h"
 #include "button.h"
+#include "display.h"
 
 #ifdef DEBUG
 #include "utils/debug.h"
@@ -31,6 +32,7 @@ MidiHandler *midiHandler;
 
 Encoder *encoder;
 Buttons *buttons;
+Display *display;
 
 Voice *voice[2];
 Dac *dac;
@@ -70,6 +72,9 @@ void onEncoderChange(int change) {
     #ifdef DEBUG
     debug_print("ec:%i\n", change);
     #endif
+    static uchar val = 0;
+    val += change;
+    display->show(val);
 
     state->encoder_turn(change);
 }
@@ -101,10 +106,14 @@ int main(void) {
     // init midi
     midiIn = new MidiReader(&onMidiMessage);
 
+    // enable display
+    display = new Display();
+
     // enable global interrupts
     sei();
 
     #ifdef DEBUG
+    display->show(3);
     debug_print("initialized\n");
     #endif
 
@@ -121,6 +130,8 @@ int main(void) {
 
         encoder->update();
         buttons->update();
+
+        display->update();
     }
     return 0;
 }

@@ -41,7 +41,7 @@ Buttons::Buttons(ButtonsChangeHandler handler) {
 
 void Buttons::update() {
     static uchar state = 0;
-    // for now only read one button
+    
     uchar reading = BUTTONS_REG & this->buttonMask; 
 
     // sth changed
@@ -71,7 +71,7 @@ ISR (TIMER2_OVF_vect) {
         uint8_t low = Buttons::_static_counters;
         uint8_t high = Buttons::_static_counters >> 8;
 
-        // bitwise vertical increment until count to 4 0b11 in each column
+        // bitwise vertical increment until count to 4 = 0b11 in each column
         Buttons::_static_counters = (low | high) | ((~(low | high) | high) << 8);
         overflows = 0;
     }

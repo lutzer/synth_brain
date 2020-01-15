@@ -11,6 +11,7 @@
 #include "config.h"
 #include "utils/macros.h"
 #include "utils/math.h"
+#include "utils/timers.h"
 
 #include "uart.h"
 #include "midi.h"
@@ -74,6 +75,7 @@ void onEncoderChange(int change) {
     #endif
     static uchar val = 0;
     val += change;
+    debug_print("show:%i\n", val);
     display->show(val);
 
     state->encoder_turn(change);
@@ -112,9 +114,12 @@ int main(void) {
     // enable global interrupts
     sei();
 
+    //activate timer2
+    Timer2::initTOI();
+
     #ifdef DEBUG
-    display->show(3);
     debug_print("initialized\n");
+    display->show(5);
     #endif
 
     while (1)
@@ -131,7 +136,9 @@ int main(void) {
         encoder->update();
         buttons->update();
 
+
         display->update();
+
     }
     return 0;
 }

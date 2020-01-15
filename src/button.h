@@ -10,6 +10,9 @@
 
 #include <avr/io.h>
 
+
+#define BUTTON_COUNTER_OVERFLOWS 15 // how many overflows for one tick of the 2bit counter to debounce, 1 overflow = 3.2ms
+
 typedef unsigned char uchar;
 
 typedef void (*ButtonsChangeHandler)(uchar changes, uchar pushed);
@@ -30,29 +33,5 @@ class Buttons {
         // holds 8x2 bit counters, max = 15
         static volatile uint32_t _static_counters;
 };
-
-// typedef void (*ButtonChangeHandler)(bool pushed);
-// /*
-// * Reads a single button
-// * Usage: //button = new Button(&ENCODER_BUTTON_PORT, &ENCODER_BUTTON_DDR, &ENCODER_BUTTON_REG, ENCODER_BUTTON, &onEncoderButtonPress);
-// */
-// class Button {
-
-//     uint8_t cPin;
-//     volatile uint8_t *cReg;
-
-//     ButtonChangeHandler handler;
-//     bool pushed;
-
-//     public:
-//         Button(
-//             volatile uint8_t *cPort, 
-//             volatile uint8_t *cDDR, 
-//             volatile uint8_t *cReg, 
-//             uint8_t cPin,
-//             ButtonChangeHandler handler);
-
-//         void update();
-// };
 
 #endif

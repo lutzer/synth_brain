@@ -1,3 +1,10 @@
+/*
+ * @Author: Lutz Reiter - http://lu-re.de 
+ * @Date: 2020-01-13 14:45:27 
+ * @Last Modified by: Lutz Reiter - http://lu-re.de
+ * @Last Modified time: 2020-01-13 14:53:43
+ */
+
 #include <avr/io.h>
 #include <util/delay.h>
 
@@ -6,30 +13,17 @@
 #include "config.h"
 #include "utils/macros.h"
 
-#ifdef DEBUG
-#include "utils/debug.h"
-#endif
-
 void hc595_init() {
-
-
-    debug_print("portb: %01X\n", DDRB);
-    
     configure_output(LCD_SHIFT_CLK_PIN);
     configure_output(LCD_SHIFT_DATA_PIN);
     configure_output(LCD_SHIFT_LATCH_PIN);
-
-    debug_print("portb: %01X\n", DDRB);
-
+    
+    set_pin_low(LCD_SHIFT_DATA_PIN);
     set_pin_low(LCD_SHIFT_CLK_PIN);
     set_pin_low(LCD_SHIFT_LATCH_PIN);
 }
 
 void hc595_write(char data) {
-    #ifdef DEBUG
-    debug_print("lcd:%01X\n", data);
-    #endif
-
 
     for(uint8_t i=0; i<8; i++) {
         if (data & (1 << i)) {
@@ -39,15 +33,11 @@ void hc595_write(char data) {
         }
         // pulse clock
         set_pin_high(LCD_SHIFT_CLK_PIN);
-        _delay_ms(1);
+        _delay_loop_1(1);
         set_pin_low(LCD_SHIFT_CLK_PIN);
-        _delay_ms(1);
     }
     // pulse latch to write data
     set_pin_high(LCD_SHIFT_LATCH_PIN);
-    _delay_ms(1);
+    _delay_loop_1(1);
     set_pin_low(LCD_SHIFT_LATCH_PIN);
-    _delay_ms(1);
-
-    _delay_ms(1000);
 }

@@ -19,12 +19,15 @@ class Display {
     uchar data[NUMBER_OF_DIGITS];
 
     public:
+        static volatile bool needs_refresh;
+        
         Display();
 
         void show(int data);
         void clear();
 
         void update();
+
 };
 
 #endif

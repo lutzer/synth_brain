@@ -11,21 +11,50 @@
 
 #include "config.h"
 #include "utils/macros.h"
+#include "utils/timers.h"
 
 #include "hc595.h"
 
+#ifdef DEBUG
+#include "utils/debug.h"
+#endif
+
+#define DISPLAY_TIMER_OVERFLOWS 1 // 1 overlfow = 3,2ms
+
+volatile bool Display::needs_refresh = false;
+
+void DisplayTimerFunc() {
+    unsigned static int overflows = 0;
+    overflows++;
+
+    if (overflows % DISPLAY_TIMER_OVERFLOWS == 0) {
+        Display::needs_refresh = true;
+    }
+}
+
 Display::Display() {
     configure_output(LCD_DIGIT1_PIN);
-    configure_output(LCD_DIGIT2_PIN);
-
     set_pin_low(LCD_DIGIT1_PIN);
+
+    // pin is used for uart in debug mode
+    #ifdef DEBUG
+    configure_output(LCD_DIGIT2_PIN);
     set_pin_low(LCD_DIGIT2_PIN);
+    #endif
 
     hc595_init();
+
+    // only refresh
+    Timer2::addCallback(&DisplayTimerFunc);
+
 }
 
 void Display::show(int data) {
-    this->data[0] = data;
+    #ifdef DEBUG
+    debug_print("lcd:%02X\n", data);
+    #endif
+
+    this->data[0] = data & 0xFF;
     this->data[1] = data << 8;
 }
 
@@ -38,19 +67,25 @@ void Display::clear() {
 void Display::update() {
     static uchar currentDigit = 0;
 
-    set_pin_low(LCD_DIGIT2_PIN);
-    hc595_write(this->data[0]);
-    set_pin_high(LCD_DIGIT1_PIN);
+    if (!Display::needs_refresh)
+        return;
+    
+    if (currentDigit == 0) {
+        #ifdef DEBUG
+        set_pin_low(LCD_DIGIT2_PIN);
+        #endif
+        hc595_write(this->data[currentDigit]);
+        set_pin_high(LCD_DIGIT1_PIN);
+    } else {
+        set_pin_low(LCD_DIGIT1_PIN);
+        hc595_write(this->data[currentDigit]);
+        #ifdef DEBUG
+        set_pin_high(LCD_DIGIT2_PIN);
+        #endif
+    }
 
-    // if (currentDigit == 0) {
-    //     set_pin_low(LCD_DIGIT2_PIN);
-    //     hc595_write(this->data[currentDigit]);
-    //     set_pin_high(LCD_DIGIT1_PIN);
-    // } else {
-    //     set_pin_low(LCD_DIGIT1_PIN);
-    //     hc595_write(this->data[currentDigit]);
-    //     set_pin_high(LCD_DIGIT2_PIN);
-    // }
+    Display::needs_refresh = false;
 
     currentDigit = (currentDigit + 1) % NUMBER_OF_DIGITS;
+
 }

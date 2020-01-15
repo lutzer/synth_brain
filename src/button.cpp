@@ -14,11 +14,23 @@
 #include "config.h"
 #include "utils/macros.h"
 #include "utils/math.h"
-#include "utils/debug.h"
-
-#define COUNTER_OVERFLOWS 20 // how many overflows for one tick of the 2bit counter to debounce
+#include "utils/timers.h"
 
 volatile uint32_t Buttons::_static_counters = 0;
+
+void buttonTimerFunc() {
+    unsigned static int overflows = 0;
+    overflows++;
+
+    if (overflows % BUTTON_COUNTER_OVERFLOWS == 0) {
+        uint8_t low = Buttons::_static_counters;
+        uint8_t high = Buttons::_static_counters >> 8;
+
+        // bitwise vertical increment until count to 4 = 0b11 in each column
+        Buttons::_static_counters = (low | high) | ((~(low | high) | high) << 8);
+        overflows = 0;
+    }
+}
 
 Buttons::Buttons(ButtonsChangeHandler handler) {
     this->handler = handler;
@@ -29,14 +41,8 @@ Buttons::Buttons(ButtonsChangeHandler handler) {
     //create buttonmask
     this->buttonMask = _BV(ENCODER_BUTTON);
 
-    // setup timer2 for debouncing
-    TCNT2 = 0x0; // set timer to 0
-    TCCR2A = 0; // set to overflow mode
-    TIMSK2 = (1 << TOIE2);  // enable overflow interrupt
-
-    // start timer with clock/256 divider
-    TCCR2B = _BV(CS22) | _BV(CS21) | _BV(CS22);
-
+    // add timer callback to debounce buttons
+    Timer2::addCallback(&buttonTimerFunc);
 }
 
 void Buttons::update() {
@@ -62,42 +68,3 @@ void Buttons::update() {
         this->handler(changes,~state);
     }
 }
-
-ISR (TIMER2_OVF_vect) {
-    unsigned static int overflows = 0;
-    overflows++;
-
-    if (overflows % COUNTER_OVERFLOWS == 0) {
-        uint8_t low = Buttons::_static_counters;
-        uint8_t high = Buttons::_static_counters >> 8;
-
-        // bitwise vertical increment until count to 4 = 0b11 in each column
-        Buttons::_static_counters = (low | high) | ((~(low | high) | high) << 8);
-        overflows = 0;
-    }
-}
-
-
-// Button::Button(
-//     volatile uint8_t *cPort, 
-//     volatile uint8_t *cDDR, 
-//     volatile uint8_t *cReg, 
-//     uint8_t cPin, 
-//     ButtonChangeHandler handler) : cPin(cPin), cReg(cReg) {
-
-//         // configure as input
-//         *cDDR &= ~( 1 << cPin);
-
-//         // set pin high
-//         *cPort |= (1 << cPin);
-
-//         this->handler = handler;
-//         this->pushed = false;
-// }
-
-// void Button::update() {
-//     char reading = *cReg & ( 1 << cPin);
-//     if (!reading != pushed)
-//         this->handler(!reading);
-//     pushed = !reading;
-// }

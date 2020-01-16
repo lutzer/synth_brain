@@ -31,7 +31,7 @@ enum EncoderState : uchar {
     UNDEFINED = 0x40,
 };
 
-uchar transitionTable[7][4] = {
+const uchar transitionTable[7][4] = {
     { UNDEFINED, CCW_START, CW_START, UNDEFINED },  // init state -> 1,2
 
     { CW_STEP1, UNDEFINED, UNDEFINED, UNDEFINED }, // cw start -> 0

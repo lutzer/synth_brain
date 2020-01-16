@@ -64,19 +64,20 @@ void onButtonChange(uchar changes, uchar pushed) {
     debug_print("button %01X:%01X\n", changes, pushed);
     #endif
 
-    if (changes & _BV(ENCODER_BUTTON) && pushed & _BV(ENCODER_BUTTON))
+    if (changes & _BV(ENCODER_BUTTON) && pushed & _BV(ENCODER_BUTTON)) {
         state->encoder_push();
-        
+        trigger->fire();
+    }
 }
 
 void onEncoderChange(int change) {
     #ifdef DEBUG
     debug_print("ec:%i\n", change);
     #endif
-    static uchar val = 0;
-    val += change;
-    debug_print("show:%i\n", val);
-    display->show(val);
+
+    static unsigned int val = 0;
+    val = constrain((val + change),0,99);
+    display->print(val);
 
     state->encoder_turn(change);
 }
@@ -119,8 +120,8 @@ int main(void) {
 
     #ifdef DEBUG
     debug_print("initialized\n");
-    display->show(5);
     #endif
+    display->print((uchar)0);
 
     while (1)
     {

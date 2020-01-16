@@ -11,20 +11,20 @@
 | Pin  | Avr Pin | Usage                          |
 | ---- | ------- | ------------------------------ |
 | 1    | PC6     | ISP Reset                      |
-| 2    | PD0     | Midi in                        |
-| 3    | PD1     | *Debugging* / **? lcd seg2**   |
+| 2    | PD0     | Rx / Midi in                   |
+| 3    | PD1     | Tx / Debugging / lcd digit2    |
 | 4    | PD2     | Auto Tune In 1                 |
 | 5    | PD3     | Auto Tune In 2                 |
-| 6    | PD4     | **? lcd seg1**                 |
+| 6    | PD4     | lcd digit1                     |
 | 7    | VCC     |                                |
 | 8    | GND     |                                |
 | 9    | PB6     | Osc                            |
 | 10   | PB7     | Osc                            |
-| 11   | PD5     | **? sr latch**                 |
+| 11   | PD5     | SR latch                       |
 | 12   | PD6     | Gate                           |
 | 13   | PD7     | Trigger                        |
-| 14   | PB0     | **? sr clk**                   |
-| 15   | PB1     | **? sr data**                  |
+| 14   | PB0     | SR clk                         |
+| 15   | PB1     | SR data                        |
 | 16   | PB2     | CS: DAC                        |
 | 17   | PB3     | SPI MOSI: DAC / ISP            |
 | 18   | PB4     | SPI MISO: ISP / ISP            |
@@ -35,9 +35,9 @@
 | 23   | PC0     | Encoder1                       |
 | 24   | PC1     | Encoder2                       |
 | 25   | PC2     | Encoder Button                 |
-| 26   | PC3     |                                |
-| 27   | PC4     |                                |
-| 28   | PC5     |                                |
+| 26   | PC3     | Mode Button                    |
+| 27   | PC4     | Mode Led1                      |
+| 28   | PC5     | Mode Led2                      |
 
 
 

@@ -23,7 +23,9 @@ class Display {
         
         Display();
 
-        void show(int data);
+        void print(const uchar number);
+        void print(const char *str);
+        void setData(int data);
         void clear();
 
         void update();

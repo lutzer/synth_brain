@@ -33,7 +33,6 @@ void hc595_write(char data) {
         }
         // pulse clock
         set_pin_high(LCD_SHIFT_CLK_PIN);
-        _delay_loop_1(1);
         set_pin_low(LCD_SHIFT_CLK_PIN);
     }
     // pulse latch to write data

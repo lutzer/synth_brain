@@ -59,9 +59,15 @@ Display::Display() {
 
     hc595_init();
 
-    // only refresh
+    // only refresh when timer requests an update
     Timer2::addCallback(&DisplayTimerFunc);
 
+    setDots(0);
+
+}
+
+void Display::setDots(const uchar dots) {
+    this->dots = dots;
 }
 
 void Display::print(uchar number) {
@@ -113,11 +119,11 @@ void Display::update() {
         #ifndef DEBUG
         set_pin_low(LCD_DIGIT2_PIN);
         #endif
-        hc595_write(this->data[currentDigit]);
+        hc595_write(this->data[currentDigit] | (dots & 0x1) );
         set_pin_high(LCD_DIGIT1_PIN);
     } else {
         set_pin_low(LCD_DIGIT1_PIN);
-        hc595_write(this->data[currentDigit]);
+        hc595_write(this->data[currentDigit] | ((dots & 0x2) >> 1) );
         #ifndef DEBUG
         set_pin_high(LCD_DIGIT2_PIN);
         #endif

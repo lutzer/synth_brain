@@ -17,11 +17,15 @@ typedef unsigned char uchar;
 */ 
 class Display {
     uchar data[NUMBER_OF_DIGITS];
+    uchar dots;
 
     public:
         static volatile bool needs_refresh;
         
         Display();
+
+        // takes first two bits to set dots of lcd display
+        void setDots(const uchar show);
 
         void print(const uchar number);
         void print(const char *str);

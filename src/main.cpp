@@ -66,7 +66,9 @@ void onButtonChange(uchar changes, uchar pushed) {
 
     if (changes & _BV(ENCODER_BUTTON) && pushed & _BV(ENCODER_BUTTON)) {
         state->encoder_push();
-        trigger->fire();
+        static uchar enable = false;
+        display->setDots(enable ? 0x1 : 0x2 );
+        enable = !enable;
     }
 }
 

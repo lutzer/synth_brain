@@ -71,8 +71,12 @@ class MidiHandler {
     Voice *voices[NUMBER_OF_VOICES];
     uchar numberOfVoices = 0;
 
+    MidiMode midiMode;
+
     public:
         void addVoice(Voice *voice);
+        void setMidiMode(const MidiMode mode, const uchar *midiChannels);
+
         void handle(MidiMessage msg);
 };
 

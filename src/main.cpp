@@ -47,7 +47,7 @@ void onMidiMessage(MidiMessage message) {
     midiHandler->handle(message);
 }
 
-void onGateChange(bool enabled) {
+void onGateChange(bool enabled, uchar dacChannel) {
     #ifdef DEBUG
     debug_print("gate %i\n", enabled);
     #endif
@@ -55,20 +55,22 @@ void onGateChange(bool enabled) {
     if (enabled) {
         set_pin_high(GATE_PIN);
         trigger->fire();
-    } else
+        display->showDot(dacChannel, true);
+    } else {
         set_pin_low(GATE_PIN);
+        display->showDot(dacChannel, false);
+    }
 }
 
 void onButtonChange(uchar changes, uchar pushed) {
     #ifdef DEBUG
     debug_print("button %01X:%01X\n", changes, pushed);
     #endif
-
     if (changes & _BV(ENCODER_BUTTON) && pushed & _BV(ENCODER_BUTTON)) {
         state->encoder_push();
-        static uchar enable = false;
-        display->setDots(enable ? 0x1 : 0x2 );
-        enable = !enable;
+    }
+    if (changes & _BV(MODE_BUTTON) && pushed & _BV(MODE_BUTTON)) {
+        state->mode_button_push();
     }
 }
 
@@ -76,19 +78,57 @@ void onEncoderChange(int change) {
     #ifdef DEBUG
     debug_print("ec:%i\n", change);
     #endif
-
-    static unsigned int val = 0;
-    val = constrain((val + change),0,99);
-    display->print(val);
-
     state->encoder_turn(change);
+}
+
+void onStateChanged(const State &state) {
+    #ifdef DEBUG
+    debug_print("state changed");
+    #endif
+
+    midiHandler->setMidiMode(state.midiMode, state.midiChannels);
+
+    // switch midi-mode led
+    if (state.midiMode == MidiMode::MONOPHONIC) {
+        set_pin_high(MODE_LED1);
+        set_pin_low(MODE_LED2);
+    } else if (state.midiMode == MidiMode::SPLIT) {
+        set_pin_low(MODE_LED1);
+        set_pin_high(MODE_LED2);
+    } else {
+        set_pin_high(MODE_LED1);
+        set_pin_high(MODE_LED2);
+    }
+
+    switch (state.status) {
+        case CtrlState::INIT:
+            if (state.menuStatus == MenuState::MENU_OFF)
+                display->clear();
+            else if (state.menuStatus == MenuState::MENU_CHANNEL1)
+                display->print("M0");
+            else if (state.menuStatus == MenuState::MENU_CHANNEL2)
+                display->print("M1");
+            else if (state.menuStatus == MenuState::MENU_CALIBRATE_LOW)
+                display->print("CL");
+            else if (state.menuStatus == MenuState::MENU_CALIBRATE_HIGH)
+                display->print("CH");
+            break;
+        case CtrlState::CONTROL_CHANNEL1:
+            display->print(state.midiChannels[0]+1);
+            break;
+        case CtrlState::CONTROL_CHANNEL2:
+            display->print(state.midiChannels[1]+1);
+            break;
+    } 
+
+    // switch midi-channels
 }
 
 int main(void) {
     uart_init();
 
     // load settings
-    state = new Statemachine();
+    state = new Statemachine(&onStateChanged);
 
     // configure inputs
     encoder = new Encoder(&onEncoderChange);
@@ -96,6 +136,8 @@ int main(void) {
     
     // configure outputs
     configure_output(GATE_PIN);
+    configure_output(MODE_LED1);
+    configure_output(MODE_LED2);
     trigger = new OneShotTrigger(TRIGGER_PULSE_LENGTH);
 
     // init the two oscillators
@@ -123,7 +165,8 @@ int main(void) {
     #ifdef DEBUG
     debug_print("initialized\n");
     #endif
-    display->print((uchar)0);
+
+    state->load();
 
     while (1)
     {
@@ -138,7 +181,6 @@ int main(void) {
 
         encoder->update();
         buttons->update();
-
 
         display->update();
 

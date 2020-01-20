@@ -20,12 +20,12 @@
 #include "utils/debug.h"
 #endif
 
-#define DISPLAY_TIMER_OVERFLOWS 1 // 1 overlfow = 3,2ms
+#define DISPLAY_TIMER_OVERFLOWS 2 // 1 overlfow = 3,2ms
 
 volatile bool Display::needs_refresh = false;
 
 // array containing 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
-const uchar lcdCharTable[] = {
+const uchar lcdNumTable[] = {
     0b11111100, // 0
     0b01100000, // 1
     0b11011010, // 2
@@ -36,6 +36,13 @@ const uchar lcdCharTable[] = {
     0b11100000, // 7
     0b11111110, // 8
     0b11110110, // 9
+};
+
+const uchar lcdCharTable[] = {
+    0b11101100, // M
+    0b10011100, // C
+    0b00011100, // L
+    0b01101110, // H
 };
 
 void DisplayTimerFunc() {
@@ -66,6 +73,13 @@ Display::Display() {
 
 }
 
+void Display::showDot(uchar dot, bool show) {
+    if (show)
+        this->dots |= (1 << dot);
+    else
+        this->dots &= ~(1 << dot);
+}
+
 void Display::setDots(const uchar dots) {
     this->dots = dots;
 }
@@ -75,8 +89,8 @@ void Display::print(uchar number) {
     debug_print("lcd:%i\n", number);
     #endif
 
-    for (int i=0;i < NUMBER_OF_DIGITS; i++) {
-        this->data[NUMBER_OF_DIGITS -1 -i] = lcdCharTable[number % 10];
+    for (uint8_t i=0;i < NUMBER_OF_DIGITS; i++) {
+        this->data[NUMBER_OF_DIGITS -1 -i] = lcdNumTable[number % 10];
         number /= 10;
     }
 }
@@ -86,9 +100,17 @@ void Display::print(const char *str) {
     debug_print("lcd:%s\n", str);
     #endif
 
-    for (int i=0;i < NUMBER_OF_DIGITS; i++) {
-        if (str[i] >= 48 && str[i] <58)
-            this->data[i] = lcdCharTable[str[i] - 48];
+    for (uint8_t i=0;i < NUMBER_OF_DIGITS; i++) {
+        if (str[i] >= 48 && str[i] <58) //if its a number
+            this->data[i] = lcdNumTable[str[i] - 48];
+        else if (str[i] == 77) // M
+            this->data[i] = lcdCharTable[0];
+        else if (str[i] == 67) // C
+            this->data[i] = lcdCharTable[1];
+        else if (str[i] == 76) // L
+            this->data[i] = lcdCharTable[2];
+        else if (str[i] == 72) // H
+            this->data[i] = lcdCharTable[3];
         else
             this->data[i] = 0;
     }

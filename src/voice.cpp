@@ -65,7 +65,7 @@ void Voice::setChannel(uchar channel) {
 void Voice::update() {
     if (this->updated) {
         this->dac->send(this->dacChannel, this->note * 32 + this->pitchbend);
-        this->gateHandler(this->gate);
+        this->gateHandler(this->gate, this->dacChannel);
         this->updated = false;
     }
         

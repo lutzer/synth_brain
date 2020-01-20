@@ -38,7 +38,7 @@ byte MidiMessage::channel() {
 MidiMessage MidiMessage::clone() {
     MidiMessage msg;
     msg.status = this->status;
-    for(int i = 0;i < MIDI_DATA_MAX_SIZE; i++)
+    for(uint8_t i = 0;i < MIDI_DATA_MAX_SIZE; i++)
         msg.data[i] = this->data[i];
     return msg;
 }
@@ -69,10 +69,19 @@ void MidiHandler::addVoice(Voice *voice) {
     this->voices[this->numberOfVoices++] = voice;
 }
 
+void MidiHandler::setMidiMode(const MidiMode mode,const uchar *midiChannels) {
+    this->midiMode = midiMode;
+
+    for (uint8_t i = 0; i < numberOfVoices; i++) {
+        voices[i]->setChannel(midiChannels[i]);
+    }
+    
+}
+
 void MidiHandler::handle(MidiMessage msg) {
     byte cmd = msg.command();
 
-    for (int i = 0; i < numberOfVoices; i++) {
+    for (uint8_t i = 0; i < numberOfVoices; i++) {
         if (cmd == MidiCommand::System_Reset) {
             voices[i]->stopAll();
         } else if (msg.channel() == voices[i]->channel) {

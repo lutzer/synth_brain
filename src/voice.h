@@ -13,7 +13,7 @@
 typedef unsigned char uchar;
 typedef unsigned int uint;
 
-typedef void (*GateChangeHandler)(bool enabled);
+typedef void (*GateChangeHandler)(bool enabled, uchar dacChannel);
 
 class Voice {
     GateChangeHandler gateHandler;

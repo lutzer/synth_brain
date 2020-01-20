@@ -25,6 +25,7 @@ class Display {
         Display();
 
         // takes first two bits to set dots of lcd display
+        void showDot(uchar dot, bool show);
         void setDots(const uchar show);
 
         void print(const uchar number);

@@ -14,50 +14,67 @@ typedef unsigned char uchar;
 
 enum CtrlState : uchar {
     INIT,
-
     CONTROL_CHANNEL1,
-    CONTROL_CHANNEL1_SET,
-
     CONTROL_CHANNEL2,
-    CONTROL_CHANNEL2_SET,
-
-    CONTROL_MIDI_MODE,
-    CONTROL_MIDI_MODE_SET,
-
     CALIBRATE_LOW,
-    CALIBRATE_LOW_SET,
-    
     CALIBRATE_HIGH,
-    CALIBRATE_HIGH_SET
+};
+
+enum MenuState : uchar {
+    MENU_OFF = 0,
+    MENU_CHANNEL1 = 1,
+    MENU_CHANNEL2 = 2,
+    MENU_CALIBRATE_LOW = 3,
+    MENU_CALIBRATE_HIGH = 4
 };
 
 enum ActionName : uchar {
     ENCODER_TURN,
-    ENCODER_PUSH
+    ENCODER_PUSH,
+    MODE_BUTTON_PUSH
 };
 
 struct State {
     CtrlState status = INIT;
+    MenuState menuStatus = MENU_OFF;
+
+    uint16_t calibration[2] = { 0, 4095 };
+
     MidiMode midiMode = SPLIT;
     uchar midiChannels[2] = {0x0, 0x1};
-    uint16_t calibration[2] = { 0, 4095 };
 };
 
-class Statemachine {
+typedef void (*StateChangeHandler)(const State &state);
 
-    void reducer(ActionName action, int param) {}
+class Statemachine {
+    
+    State state;
+    StateChangeHandler handler;
+
+    void reducer(ActionName action, int param = 0);
 
     public:
-        // statedata
-        State state;
+
+        Statemachine(StateChangeHandler handler) : handler(handler) {}
 
         // loads/saves in eeprom  
-        void load() {}
+        void load() {
+            this->handler(this->state);
+        }
         void save() {}
 
         // actions
-        void encoder_push() {}
-        void encoder_turn(uchar change) {}
+        void encoder_push() {
+            this->reducer(ENCODER_PUSH);
+        }
+
+        void encoder_turn(int change) {
+            this->reducer(ENCODER_TURN, change);
+        }
+
+        void mode_button_push() {
+            this->reducer(MODE_BUTTON_PUSH);
+        }
 };
 
 #endif

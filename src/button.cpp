@@ -38,8 +38,11 @@ Buttons::Buttons(ButtonsChangeHandler handler) {
     configure_input(ENCODER_BUTTON);
     set_pin_high(ENCODER_BUTTON);
 
+    configure_input(MODE_BUTTON);
+    set_pin_high(MODE_BUTTON);
+
     //create buttonmask
-    this->buttonMask = _BV(ENCODER_BUTTON);
+    this->buttonMask = _BV(ENCODER_BUTTON) | _BV(MODE_BUTTON);
 
     // add timer callback to debounce buttons
     Timer2::addCallback(&buttonTimerFunc);
@@ -48,7 +51,7 @@ Buttons::Buttons(ButtonsChangeHandler handler) {
 void Buttons::update() {
     static uchar state = 0;
     
-    uchar reading = BUTTONS_REG & this->buttonMask; 
+    uchar reading = BUTTONS_REG & this->buttonMask;
 
     // sth changed
     if (uchar changes = state ^ reading) {

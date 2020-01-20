@@ -59,6 +59,19 @@
 #define ENCODER_BUTTON_PORT PORTC
 #define ENCODER_BUTTON_DDR DDRC
 
+#define MODE_BUTTON PC3
+#define MODE_BUTTON_PORT PORTC
+#define MODE_BUTTON_DDR DDRC
+
+//led pins
+#define MODE_LED1 PC4
+#define MODE_LED1_PORT PORTC
+#define MODE_LED1_DDR DDRC
+
+#define MODE_LED2 PC5
+#define MODE_LED2_PORT PORTC
+#define MODE_LED2_DDR DDRC
+
 // set trigger pulse length
 #define TRIGGER_PULSE_LENGTH 10 // in ms
 

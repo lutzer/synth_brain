@@ -2,7 +2,7 @@
  * @Author: Lutz Reiter - http://lu-re.de 
  * @Date: 2020-01-06 19:13:57 
  * @Last Modified by: Lutz Reiter - http://lu-re.de
- * @Last Modified time: 2020-01-09 14:54:03
+ * @Last Modified time: 2020-01-21 12:40:17
  */
 
 #include <avr/io.h>
@@ -35,7 +35,7 @@ Encoder *encoder;
 Buttons *buttons;
 Display *display;
 
-Voice *voice[2];
+Voice *voice[NUMBER_OF_VOICES];
 Dac *dac;
 OneShotTrigger *trigger;
 
@@ -49,7 +49,7 @@ void onMidiMessage(MidiMessage message) {
 
 void onGateChange(bool enabled, uchar dacChannel) {
     #ifdef DEBUG
-    debug_print("gate %i\n", enabled);
+    debug_print("gate c%i %i\n", dacChannel, enabled);
     #endif
 
     if (enabled) {
@@ -66,6 +66,7 @@ void onButtonChange(uchar changes, uchar pushed) {
     #ifdef DEBUG
     debug_print("button %01X:%01X\n", changes, pushed);
     #endif
+
     if (changes & _BV(ENCODER_BUTTON) && pushed & _BV(ENCODER_BUTTON)) {
         state->encoder_push();
     }
@@ -78,24 +79,26 @@ void onEncoderChange(int change) {
     #ifdef DEBUG
     debug_print("ec:%i\n", change);
     #endif
+
     state->encoder_turn(change);
 }
 
 void onStateChanged(const State &state) {
     #ifdef DEBUG
-    debug_print("state changed");
+    debug_print("state: %i:%i\n", state.status, state.midiMode);
     #endif
 
+    // switch midi mode and midi channels
     midiHandler->setMidiMode(state.midiMode, state.midiChannels);
 
     // switch midi-mode led
-    if (state.midiMode == MidiMode::MONOPHONIC) {
+    if (state.midiMode == MidiMode::SPLIT) {
         set_pin_high(MODE_LED1);
         set_pin_low(MODE_LED2);
-    } else if (state.midiMode == MidiMode::SPLIT) {
+    } else if (state.midiMode == MidiMode::MONOPHONIC ) {
         set_pin_low(MODE_LED1);
         set_pin_high(MODE_LED2);
-    } else {
+    } else if (state.midiMode == MidiMode::PARAPHONIC ){
         set_pin_high(MODE_LED1);
         set_pin_high(MODE_LED2);
     }
@@ -105,13 +108,13 @@ void onStateChanged(const State &state) {
             if (state.menuStatus == MenuState::MENU_OFF)
                 display->clear();
             else if (state.menuStatus == MenuState::MENU_CHANNEL1)
-                display->print("M0");
+                display->print("C1");
             else if (state.menuStatus == MenuState::MENU_CHANNEL2)
-                display->print("M1");
+                display->print("C2");
             else if (state.menuStatus == MenuState::MENU_CALIBRATE_LOW)
-                display->print("CL");
+                display->print("SL");
             else if (state.menuStatus == MenuState::MENU_CALIBRATE_HIGH)
-                display->print("CH");
+                display->print("SH");
             break;
         case CtrlState::CONTROL_CHANNEL1:
             display->print(state.midiChannels[0]+1);
@@ -119,9 +122,7 @@ void onStateChanged(const State &state) {
         case CtrlState::CONTROL_CHANNEL2:
             display->print(state.midiChannels[1]+1);
             break;
-    } 
-
-    // switch midi-channels
+    }
 }
 
 int main(void) {
@@ -181,6 +182,8 @@ int main(void) {
 
         encoder->update();
         buttons->update();
+        
+        state->update();
 
         display->update();
 

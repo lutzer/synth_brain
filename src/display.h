@@ -1,8 +1,8 @@
 /*
  * @Author: Lutz Reiter - http://lu-re.de 
  * @Date: 2020-01-08 01:10:00 
- * @Last Modified by:   Lutz Reiter - http://lu-re.de 
- * @Last Modified time: 2020-01-08 01:10:00 
+ * @Last Modified by: Lutz Reiter - http://lu-re.de
+ * @Last Modified time: 2020-01-21 12:35:05
  */
 
 #ifndef DISPLAY_H
@@ -20,7 +20,7 @@ class Display {
     uchar dots;
 
     public:
-        static volatile bool needs_refresh;
+        static volatile bool _needsRefresh;
         
         Display();
 

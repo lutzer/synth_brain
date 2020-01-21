@@ -2,7 +2,7 @@
  * @Author: Lutz Reiter - http://lu-re.de 
  * @Date: 2020-01-09 09:36:02 
  * @Last Modified by: Lutz Reiter - http://lu-re.de
- * @Last Modified time: 2020-01-09 09:53:33
+ * @Last Modified time: 2020-01-21 12:49:33
  */
 
 #ifndef STATE_H
@@ -10,14 +10,16 @@
 
 #include "midi.h"
 
+#define TIMEOUT_TIMER_OVERFLOWS 2500 //1 overflow = 3,2ms
+
 typedef unsigned char uchar;
 
 enum CtrlState : uchar {
     INIT,
     CONTROL_CHANNEL1,
     CONTROL_CHANNEL2,
-    CALIBRATE_LOW,
-    CALIBRATE_HIGH,
+    //CALIBRATE_LOW,
+    //CALIBRATE_HIGH,
 };
 
 enum MenuState : uchar {
@@ -31,7 +33,8 @@ enum MenuState : uchar {
 enum ActionName : uchar {
     ENCODER_TURN,
     ENCODER_PUSH,
-    MODE_BUTTON_PUSH
+    MODE_BUTTON_PUSH,
+    TIMEOUT
 };
 
 struct State {
@@ -55,7 +58,9 @@ class Statemachine {
 
     public:
 
-        Statemachine(StateChangeHandler handler) : handler(handler) {}
+        static volatile uint16_t _triggerTimeoutOverflows;
+
+        Statemachine(StateChangeHandler handler);
 
         // loads/saves in eeprom  
         void load() {
@@ -75,6 +80,10 @@ class Statemachine {
         void mode_button_push() {
             this->reducer(MODE_BUTTON_PUSH);
         }
+
+        void update();
+
+        void resetTimeout();
 };
 
 #endif

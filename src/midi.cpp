@@ -7,6 +7,10 @@
 
 #include "midi.h"
 
+#ifdef DEBUG
+#include "utils/debug.h"
+#endif
+
 char calculateMidiDataSize(MidiCommand cmd) {
     switch (cmd) {
         case MidiCommand::Note_On:
@@ -70,33 +74,53 @@ void MidiHandler::addVoice(Voice *voice) {
 }
 
 void MidiHandler::setMidiMode(const MidiMode mode,const uchar *midiChannels) {
-    this->midiMode = midiMode;
-
+    this->midiMode = mode;
     for (uint8_t i = 0; i < numberOfVoices; i++) {
         voices[i]->setChannel(midiChannels[i]);
     }
-    
 }
 
 void MidiHandler::handle(MidiMessage msg) {
-    byte cmd = msg.command();
-
+    MidiCommand cmd = msg.command();
     for (uint8_t i = 0; i < numberOfVoices; i++) {
         if (cmd == MidiCommand::System_Reset) {
             voices[i]->stopAll();
-        } else if (msg.channel() == voices[i]->channel) {
-            switch (cmd) {
-                case MidiCommand::Note_On:
-                    voices[i]->playNote(msg.data[0]);
-                    break;
-                case MidiCommand::Note_Off:
-                    voices[i]->stopNote(msg.data[0]);
-                    break;
-                case MidiCommand::Pitch_Bend:
-                    voices[i]->setPitchBend(0);
-                default:
-                    break;
-            }  
+            continue;
+        }
+
+        if (this->midiMode == MidiMode::SPLIT) {
+            // debug_print("split\n");
+            if (msg.channel() == voices[i]->channel) {
+                // debug_print("c%i\n",i);
+                switch (cmd) {
+                    case MidiCommand::Note_On:
+                        voices[i]->playNote(msg.data[0]);
+                        break;
+                    case MidiCommand::Note_Off:
+                        voices[i]->stopNote(msg.data[0]);
+                        break;
+                    case MidiCommand::Pitch_Bend:
+                        voices[i]->setPitchBend(0);
+                    default:
+                        break;
+                }
+            }
+        } else if (this->midiMode == MidiMode::MONOPHONIC) {
+            // debug_print("mono\n");
+            if (msg.channel() == voices[0]->channel) { // reacts to midi msg only on channel of voice1
+                switch (cmd) {
+                    case MidiCommand::Note_On:
+                        voices[i]->playNote(msg.data[0]);
+                        break;
+                    case MidiCommand::Note_Off:
+                        voices[i]->stopNote(msg.data[0]);
+                        break;
+                    case MidiCommand::Pitch_Bend:
+                        voices[i]->setPitchBend(0);
+                    default:
+                        break;
+                }
+            }
         }
     }
 }

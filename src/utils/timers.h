@@ -1,3 +1,10 @@
+/*
+ * @Author: Lutz Reiter - http://lu-re.de 
+ * @Date: 2020-01-21 09:44:51 
+ * @Last Modified by:   Lutz Reiter - http://lu-re.de 
+ * @Last Modified time: 2020-01-21 09:44:51 
+ */
+
 #ifndef TIMERS_H
 #define TIMERS_H
 

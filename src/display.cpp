@@ -2,7 +2,7 @@
  * @Author: Lutz Reiter - http://lu-re.de 
  * @Date: 2020-01-08 01:09:55 
  * @Last Modified by: Lutz Reiter - http://lu-re.de
- * @Last Modified time: 2020-01-08 01:11:00
+ * @Last Modified time: 2020-01-21 12:35:51
  */
 
 #include <avr/io.h>
@@ -22,7 +22,7 @@
 
 #define DISPLAY_TIMER_OVERFLOWS 2 // 1 overlfow = 3,2ms
 
-volatile bool Display::needs_refresh = false;
+volatile bool Display::_needsRefresh = false;
 
 // array containing 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
 const uchar lcdNumTable[] = {
@@ -43,14 +43,16 @@ const uchar lcdCharTable[] = {
     0b10011100, // C
     0b00011100, // L
     0b01101110, // H
+    0b10110110, // S
 };
 
-void DisplayTimerFunc() {
-    unsigned static int overflows = 0;
+void DisplayRefreshFunc() {
+    static uint8_t overflows = 0;
     overflows++;
 
     if (overflows % DISPLAY_TIMER_OVERFLOWS == 0) {
-        Display::needs_refresh = true;
+        Display::_needsRefresh = true;
+        overflows = 0;
     }
 }
 
@@ -67,7 +69,7 @@ Display::Display() {
     hc595_init();
 
     // only refresh when timer requests an update
-    Timer2::addCallback(&DisplayTimerFunc);
+    Timer2::addCallback(&DisplayRefreshFunc);
 
     setDots(0);
 
@@ -111,6 +113,8 @@ void Display::print(const char *str) {
             this->data[i] = lcdCharTable[2];
         else if (str[i] == 72) // H
             this->data[i] = lcdCharTable[3];
+        else if (str[i] == 83) // S
+            this->data[i] = lcdCharTable[4];
         else
             this->data[i] = 0;
     }
@@ -134,7 +138,7 @@ void Display::clear() {
 void Display::update() {
     static uchar currentDigit = 0;
 
-    if (!Display::needs_refresh)
+    if (!Display::_needsRefresh)
         return;
     
     if (currentDigit == 0) {
@@ -151,7 +155,7 @@ void Display::update() {
         #endif
     }
 
-    Display::needs_refresh = false;
+    Display::_needsRefresh = false;
 
     currentDigit = (currentDigit + 1) % NUMBER_OF_DIGITS;
 

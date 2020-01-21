@@ -2,7 +2,7 @@
  * @Author: Lutz Reiter - http://lu-re.de 
  * @Date: 2020-01-09 14:36:45 
  * @Last Modified by: Lutz Reiter - http://lu-re.de
- * @Last Modified time: 2020-01-09 16:58:25
+ * @Last Modified time: 2020-01-21 12:30:28
  */
 
 #include <avr/io.h>
@@ -19,7 +19,7 @@
 volatile uint32_t Buttons::_static_counters = 0;
 
 void buttonTimerFunc() {
-    unsigned static int overflows = 0;
+    static uint8_t overflows = 0;
     overflows++;
 
     if (overflows % BUTTON_COUNTER_OVERFLOWS == 0) {

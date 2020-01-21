@@ -2,10 +2,11 @@
  * @Author: Lutz Reiter - http://lu-re.de 
  * @Date: 2020-01-21 09:45:06 
  * @Last Modified by: Lutz Reiter - http://lu-re.de
- * @Last Modified time: 2020-01-21 12:54:17
+ * @Last Modified time: 2020-01-21 14:04:51
  */
 
 #include <util/atomic.h>
+#include <avr/eeprom.h>
 
 #include "state.h"
 
@@ -16,6 +17,10 @@
 #include "utils/debug.h"
 #endif
 
+// eeprom registers
+#define ADDRESS_MIDI_MODE 0x0
+#define ADDRESS_MIDI_CHANNELS 0xA
+
 volatile uint16_t Statemachine::_triggerTimeoutOverflows = 0;
 
 void timerTimeoutFunc() {
@@ -24,6 +29,25 @@ void timerTimeoutFunc() {
 
 Statemachine::Statemachine(StateChangeHandler handler) : handler(handler) {
     Timer2::addCallback(&timerTimeoutFunc);
+}
+
+void Statemachine::load() {
+    this->state.midiMode = (MidiMode)constrain( eeprom_read_byte((uint8_t*)ADDRESS_MIDI_MODE), 0, 2 );
+    this->state.midiChannels[0] = constrain( eeprom_read_byte((uint8_t*)ADDRESS_MIDI_CHANNELS), 0, 15);
+    this->state.midiChannels[1] = constrain( eeprom_read_byte((uint8_t*)ADDRESS_MIDI_CHANNELS + 1), 0, 15);
+    #ifdef DEBUG
+    debug_print("state loaded\n");
+    #endif
+    this->handler(this->state);
+}
+
+void Statemachine::save() {
+    eeprom_update_byte((uint8_t*)ADDRESS_MIDI_MODE, this->state.midiMode);
+    eeprom_update_byte((uint8_t*)ADDRESS_MIDI_CHANNELS, this->state.midiChannels[0]);
+    eeprom_update_byte((uint8_t*)ADDRESS_MIDI_CHANNELS + 1, this->state.midiChannels[1]);
+    #ifdef DEBUG
+    debug_print("state saved\n");
+    #endif
 }
 
 void Statemachine::reducer(ActionName action, int param) {
@@ -53,10 +77,12 @@ void Statemachine::reducer(ActionName action, int param) {
             }
             if (action == ActionName::ENCODER_PUSH) {
                 this->state.status = CtrlState::INIT;
+                this->saveChanges = true;
             }
             if (action == ActionName::TIMEOUT) {
                 this->state.status = CtrlState::INIT;
                 this->state.menuStatus = MenuState::MENU_OFF;
+                this->saveChanges = true;
             }
             this->resetTimeout();
         case CtrlState::CONTROL_CHANNEL2:
@@ -65,10 +91,12 @@ void Statemachine::reducer(ActionName action, int param) {
             }
             if (action == ActionName::ENCODER_PUSH) {
                 this->state.status = CtrlState::INIT;
+                this->saveChanges = true;
             }
             if (action == ActionName::TIMEOUT) {
                 this->state.status = CtrlState::INIT;
                 this->state.menuStatus = MenuState::MENU_OFF;
+                this->saveChanges = true;
             }
             this->resetTimeout();
     }
@@ -76,6 +104,13 @@ void Statemachine::reducer(ActionName action, int param) {
     // always accept mode button pushes
     if (action == ActionName::MODE_BUTTON_PUSH) {
         this->state.midiMode = (MidiMode)((this->state.midiMode + 1) % 3);
+        this->saveChanges = true;
+    }
+
+    // checks regulary if it needs to save changes
+    if (action == ActionName::TIMEOUT && this->saveChanges) {
+        this->saveChanges = false;
+        this->save();
     }
 
     this->handler(this->state);    

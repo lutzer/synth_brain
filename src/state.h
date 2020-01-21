@@ -2,7 +2,7 @@
  * @Author: Lutz Reiter - http://lu-re.de 
  * @Date: 2020-01-09 09:36:02 
  * @Last Modified by: Lutz Reiter - http://lu-re.de
- * @Last Modified time: 2020-01-21 12:49:33
+ * @Last Modified time: 2020-01-21 13:58:31
  */
 
 #ifndef STATE_H
@@ -54,6 +54,8 @@ class Statemachine {
     State state;
     StateChangeHandler handler;
 
+    bool saveChanges = false;
+
     void reducer(ActionName action, int param = 0);
 
     public:
@@ -63,10 +65,8 @@ class Statemachine {
         Statemachine(StateChangeHandler handler);
 
         // loads/saves in eeprom  
-        void load() {
-            this->handler(this->state);
-        }
-        void save() {}
+        void load();
+        void save();
 
         // actions
         void encoder_push() {

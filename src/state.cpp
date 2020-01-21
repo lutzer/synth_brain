@@ -2,7 +2,7 @@
  * @Author: Lutz Reiter - http://lu-re.de 
  * @Date: 2020-01-21 09:45:06 
  * @Last Modified by: Lutz Reiter - http://lu-re.de
- * @Last Modified time: 2020-01-21 14:04:51
+ * @Last Modified time: 2020-01-22 00:57:44
  */
 
 #include <util/atomic.h>
@@ -32,9 +32,9 @@ Statemachine::Statemachine(StateChangeHandler handler) : handler(handler) {
 }
 
 void Statemachine::load() {
-    this->state.midiMode = (MidiMode)constrain( eeprom_read_byte((uint8_t*)ADDRESS_MIDI_MODE), 0, 2 );
-    this->state.midiChannels[0] = constrain( eeprom_read_byte((uint8_t*)ADDRESS_MIDI_CHANNELS), 0, 15);
-    this->state.midiChannels[1] = constrain( eeprom_read_byte((uint8_t*)ADDRESS_MIDI_CHANNELS + 1), 0, 15);
+    this->state.midiMode = (MidiMode)constrain( (int)eeprom_read_byte((uint8_t*)ADDRESS_MIDI_MODE), 0, 2 );
+    this->state.midiChannels[0] = constrain( (int)eeprom_read_byte((uint8_t*)ADDRESS_MIDI_CHANNELS), 0, 15);
+    this->state.midiChannels[1] = constrain( (int)eeprom_read_byte((uint8_t*)ADDRESS_MIDI_CHANNELS + 1), 0, 15);
     #ifdef DEBUG
     debug_print("state loaded\n");
     #endif

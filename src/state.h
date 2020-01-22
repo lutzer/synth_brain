@@ -2,7 +2,7 @@
  * @Author: Lutz Reiter - http://lu-re.de 
  * @Date: 2020-01-09 09:36:02 
  * @Last Modified by: Lutz Reiter - http://lu-re.de
- * @Last Modified time: 2020-01-21 13:58:31
+ * @Last Modified time: 2020-01-22 13:33:11
  */
 
 #ifndef STATE_H
@@ -10,7 +10,7 @@
 
 #include "midi.h"
 
-#define TIMEOUT_TIMER_OVERFLOWS 2500 //1 overflow = 3,2ms
+#define TIMEOUT_TIMER_OVERFLOWS 1566 //1 overflow = 3,2ms
 
 typedef unsigned char uchar;
 

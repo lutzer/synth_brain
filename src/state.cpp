@@ -2,7 +2,7 @@
  * @Author: Lutz Reiter - http://lu-re.de 
  * @Date: 2020-01-21 09:45:06 
  * @Last Modified by: Lutz Reiter - http://lu-re.de
- * @Last Modified time: 2020-01-22 12:00:21
+ * @Last Modified time: 2020-01-22 13:18:40
  */
 
 #include <util/atomic.h>
@@ -19,7 +19,8 @@
 
 // eeprom registers
 #define ADDRESS_MIDI_MODE (uint8_t*)0
-#define ADDRESS_MIDI_CHANNELS (uint8_t*)10
+#define ADDRESS_MIDI_CHANNEL1 (uint8_t*)20
+#define ADDRESS_MIDI_CHANNEL2 (uint8_t*)40
 
 volatile uint16_t Statemachine::_triggerTimeoutOverflows = 0;
 
@@ -33,8 +34,8 @@ Statemachine::Statemachine(StateChangeHandler handler) : handler(handler) {
 
 void Statemachine::load() {
     this->state.midiMode = (MidiMode)storage_read_byte(ADDRESS_MIDI_MODE, 0);
-    this->state.midiChannels[0] = storage_read_byte(ADDRESS_MIDI_CHANNELS, 0);
-    this->state.midiChannels[1] = storage_read_byte(ADDRESS_MIDI_CHANNELS + 1, 1);
+    this->state.midiChannels[0] = storage_read_byte(ADDRESS_MIDI_CHANNEL1, 0);
+    this->state.midiChannels[1] = storage_read_byte(ADDRESS_MIDI_CHANNEL2, 1);
 
     #ifdef DEBUG
     debug_print("state loaded\n");
@@ -45,8 +46,8 @@ void Statemachine::load() {
 
 void Statemachine::save() {
     storage_write_byte(ADDRESS_MIDI_MODE, this->state.midiMode);
-    storage_write_byte(ADDRESS_MIDI_CHANNELS, this->state.midiChannels[0]);
-    storage_write_byte(ADDRESS_MIDI_CHANNELS + 1, this->state.midiChannels[1]);
+    storage_write_byte(ADDRESS_MIDI_CHANNEL1, this->state.midiChannels[0]);
+    storage_write_byte(ADDRESS_MIDI_CHANNEL2, this->state.midiChannels[1]);
 
     #ifdef DEBUG
     debug_print("state saved\n");

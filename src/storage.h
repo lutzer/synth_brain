@@ -10,8 +10,6 @@
 
 #include <avr/eeprom.h>
 
-#include "utils/debug.h"
-
 #define NUMBER_OF_COPIES 10
 
 /* 
@@ -21,27 +19,23 @@
  * size in eeprom
  */
 void storage_write_byte(uint8_t* address, uint8_t value, uint8_t bufferSize = NUMBER_OF_COPIES) {
+    // read status buffer
     uint8_t status_block[bufferSize];
     eeprom_read_block(status_block, address, bufferSize);
 
-    // find latest updated buffer, by finding the higher one
     uint8_t i = 0;
     while (i < bufferSize - 1) {
-        if (status_block[i] <= status_block[i+1])
-            i++;
-        else
+        if (status_block[i] == (uint8_t)(status_block[i+1] + 1) )
             break;
+        i++;
     }
 
-    debug_print("check: %i\n", address + bufferSize + i);
-
     // check if the latest value has changed
-    if (eeprom_read_byte(address + bufferSize + i) != value) {
+    if (eeprom_read_byte((uint8_t*)(address + bufferSize + i)) != value) {
         //update status buffer and storage buffer
-        uint8_t i2 = ((i + 1) % bufferSize);
-        debug_print("write: %i\n", address + bufferSize + i2);
-        eeprom_write_byte(address + i2, status_block[i2]+1);
-        eeprom_write_byte(address + bufferSize + i2, value);
+        uint8_t writePosition = ((i + 1) % bufferSize);
+        eeprom_write_byte((uint8_t*)(address + writePosition), status_block[writePosition]+1);
+        eeprom_write_byte((uint8_t*)(address + bufferSize + writePosition), value);
     }
 }
 
@@ -49,20 +43,16 @@ void storage_write_byte(uint8_t* address, uint8_t value, uint8_t bufferSize = NU
  *  storage reading function using multiple cells to extend lifespan of eprom
  */  
 uint8_t storage_read_byte(uint8_t* address, uint8_t defaultValue = 0, uint8_t bufferSize = NUMBER_OF_COPIES) {
+    // read status buffer
     uint8_t status_block[bufferSize];
     eeprom_read_block(status_block, address, bufferSize);
-    
-    // find latest updated buffer, by finding the higher one
+
     uint8_t i = 0;
     while (i < bufferSize - 1) {
-        if (status_block[i] == status_block[(i+1)])
-            i++;
-        else
+        if (status_block[i] == (uint8_t)(status_block[i+1] + 1) )
             break;
+        i++;
     }
-    i = (i == bufferSize - 1) ? 0 : (i + 1);
-
-    debug_print("read from: %i:%i", address, i);
 
     uint8_t val = eeprom_read_byte(address + bufferSize + i);
     return (val == 0xFF) ? defaultValue : val;

@@ -2,7 +2,7 @@
  * @Author: Lutz Reiter - http://lu-re.de 
  * @Date: 2020-01-06 19:13:57 
  * @Last Modified by: Lutz Reiter - http://lu-re.de
- * @Last Modified time: 2020-01-21 12:40:17
+ * @Last Modified time: 2020-01-22 08:42:26
  */
 
 #include <avr/io.h>
@@ -128,18 +128,21 @@ void onStateChanged(const State &state) {
 int main(void) {
     uart_init();
 
-    // load settings
-    state = new Statemachine(&onStateChanged);
-
-    // configure inputs
-    encoder = new Encoder(&onEncoderChange);
-    buttons = new Buttons(&onButtonChange);
-    
     // configure outputs
     configure_output(GATE_PIN);
     configure_output(MODE_LED1);
     configure_output(MODE_LED2);
     trigger = new OneShotTrigger(TRIGGER_PULSE_LENGTH);
+
+    // enable display
+    display = new Display();
+
+    // configure inputs
+    encoder = new Encoder(&onEncoderChange);
+    buttons = new Buttons(&onButtonChange);
+
+    // setup statemachine
+    state = new Statemachine(&onStateChanged);
 
     // init the two oscillators
     dac = new Dac();
@@ -153,9 +156,6 @@ int main(void) {
 
     // init midi
     midiIn = new MidiReader(&onMidiMessage);
-
-    // enable display
-    display = new Display();
 
     // enable global interrupts
     sei();

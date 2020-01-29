@@ -42,7 +42,7 @@ byte MidiMessage::channel() {
 MidiMessage MidiMessage::clone() {
     MidiMessage msg;
     msg.status = this->status;
-    for(uint8_t i = 0;i < MIDI_DATA_MAX_SIZE; i++)
+    for(byte i = 0;i < MIDI_DATA_MAX_SIZE; i++)
         msg.data[i] = this->data[i];
     return msg;
 }
@@ -66,61 +66,5 @@ void MidiReader::parse(byte b) {
     if (dataSize > -1 && dataHead >= dataSize) {
         this->messageHandler(message);
         dataHead = 0;
-    }
-}
-
-void MidiHandler::addVoice(Voice *voice) {
-    this->voices[this->numberOfVoices++] = voice;
-}
-
-void MidiHandler::setMidiMode(const MidiMode mode,const uchar *midiChannels) {
-    this->midiMode = mode;
-    for (uint8_t i = 0; i < numberOfVoices; i++) {
-        voices[i]->setChannel(midiChannels[i]);
-    }
-}
-
-void MidiHandler::handle(MidiMessage msg) {
-    MidiCommand cmd = msg.command();
-    for (uint8_t i = 0; i < numberOfVoices; i++) {
-        if (cmd == MidiCommand::System_Reset) {
-            voices[i]->stopAll();
-            continue;
-        }
-
-        if (this->midiMode == MidiMode::SPLIT) {
-            // debug_print("split\n");
-            if (msg.channel() == voices[i]->channel) {
-                // debug_print("c%i\n",i);
-                switch (cmd) {
-                    case MidiCommand::Note_On:
-                        voices[i]->playNote(msg.data[0]);
-                        break;
-                    case MidiCommand::Note_Off:
-                        voices[i]->stopNote(msg.data[0]);
-                        break;
-                    case MidiCommand::Pitch_Bend:
-                        voices[i]->setPitchBend(0);
-                    default:
-                        break;
-                }
-            }
-        } else if (this->midiMode == MidiMode::MONOPHONIC) {
-            // debug_print("mono\n");
-            if (msg.channel() == voices[0]->channel) { // reacts to midi msg only on channel of voice1
-                switch (cmd) {
-                    case MidiCommand::Note_On:
-                        voices[i]->playNote(msg.data[0]);
-                        break;
-                    case MidiCommand::Note_Off:
-                        voices[i]->stopNote(msg.data[0]);
-                        break;
-                    case MidiCommand::Pitch_Bend:
-                        voices[i]->setPitchBend(0);
-                    default:
-                        break;
-                }
-            }
-        }
     }
 }

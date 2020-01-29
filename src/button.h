@@ -16,6 +16,7 @@
 typedef unsigned char uchar;
 
 typedef void (*ButtonsChangeHandler)(uchar changes, uchar pushed);
+
 /*
 * Setup, reads and debounces multiple buttons on portc
 */

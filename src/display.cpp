@@ -39,11 +39,14 @@ const uchar lcdNumTable[] = {
 };
 
 const uchar lcdCharTable[] = {
-    0b11101100, // M
-    0b10011100, // C
-    0b00011100, // L
-    0b01101110, // H
-    0b10110110, // S
+    0b11101100, // 0=M
+    0b10011100, // 1=C
+    0b00011100, // 2=L
+    0b01101110, // 3=H
+    0b10110110, // 4=S
+    0b11101110, // 5=A
+    0b10011100, // 6=[
+    0b11110000, // 7=]
 };
 
 void DisplayRefreshFunc() {
@@ -105,16 +108,22 @@ void Display::print(const char *str) {
     for (uint8_t i=0;i < NUMBER_OF_DIGITS; i++) {
         if (str[i] >= 48 && str[i] <58) //if its a number
             this->data[i] = lcdNumTable[str[i] - 48];
-        else if (str[i] == 77) // M
-            this->data[i] = lcdCharTable[0];
+        // else if (str[i] == 77) // M
+        //     this->data[i] = lcdCharTable[0];
         else if (str[i] == 67) // C
             this->data[i] = lcdCharTable[1];
-        else if (str[i] == 76) // L
-            this->data[i] = lcdCharTable[2];
-        else if (str[i] == 72) // H
-            this->data[i] = lcdCharTable[3];
-        else if (str[i] == 83) // S
-            this->data[i] = lcdCharTable[4];
+        // else if (str[i] == 76) // L
+        //     this->data[i] = lcdCharTable[2];
+        // else if (str[i] == 72) // H
+        //     this->data[i] = lcdCharTable[3];
+        // else if (str[i] == 83) // S
+        //     this->data[i] = lcdCharTable[4];
+        else if (str[i] == 65) // A
+            this->data[i] = lcdCharTable[5];
+        else if (str[i] == 91) // [
+            this->data[i] = lcdCharTable[6];
+        else if (str[i] == 93) // ]
+            this->data[i] = lcdCharTable[7];
         else
             this->data[i] = 0;
     }

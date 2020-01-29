@@ -2,32 +2,37 @@
  * @Author: Lutz Reiter - http://lu-re.de 
  * @Date: 2020-01-09 09:36:02 
  * @Last Modified by: Lutz Reiter - http://lu-re.de
- * @Last Modified time: 2020-01-21 13:58:31
+ * @Last Modified time: 2020-01-29 13:19:18
  */
 
 #ifndef STATE_H
 #define STATE_H
 
-#include "midi.h"
+#include "voice.h"
+#include "calibration_table.h"
 
-#define TIMEOUT_TIMER_OVERFLOWS 2500 //1 overflow = 3,2ms
+#define NUMBER_OF_MIDI_CHANNELS 2
 
 typedef unsigned char uchar;
 
 enum CtrlState : uchar {
-    INIT,
-    CONTROL_CHANNEL1,
-    CONTROL_CHANNEL2,
-    //CALIBRATE_LOW,
-    //CALIBRATE_HIGH,
+    INIT = 0,
+    CONTROL_CHANNEL1 = 1,
+    CONTROL_CHANNEL2 = 2,
+    CALIBRATE_A1 = 3,
+    CALIBRATE_A2 = 4,
+    CALIBRATE_A3 = 5,
+    CALIBRATE_A4 = 6
 };
 
 enum MenuState : uchar {
     MENU_OFF = 0,
     MENU_CHANNEL1 = 1,
     MENU_CHANNEL2 = 2,
-    MENU_CALIBRATE_LOW = 3,
-    MENU_CALIBRATE_HIGH = 4
+    MENU_CALIBRATE_A1 = 3,
+    MENU_CALIBRATE_A2 = 4,
+    MENU_CALIBRATE_A3 = 5,
+    MENU_CALIBRATE_A4 = 6,
 };
 
 enum ActionName : uchar {
@@ -41,10 +46,10 @@ struct State {
     CtrlState status = INIT;
     MenuState menuStatus = MENU_OFF;
 
-    uint16_t calibration[2] = { 0, 4095 };
+    uint8_t calibration[NUMBER_OF_CALIBRATION_VALUES];
 
     MidiMode midiMode = SPLIT;
-    uchar midiChannels[2] = {0x0, 0x1};
+    uchar midiChannels[NUMBER_OF_MIDI_CHANNELS] = {0x0, 0x1};
 };
 
 typedef void (*StateChangeHandler)(const State &state);
@@ -52,6 +57,8 @@ typedef void (*StateChangeHandler)(const State &state);
 class Statemachine {
     
     State state;
+    bool stateChanged = false;
+    
     StateChangeHandler handler;
 
     bool saveChanges = false;

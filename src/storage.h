@@ -23,4 +23,13 @@ uint8_t storage_read_byte(uint8_t* address, uint8_t defaultValue = 0, uint8_t nu
     return (val == 0xFF) ? defaultValue : val;
 }
 
+void storage_write_word(uint16_t* address, uint16_t value, uint8_t numberOfCells = NUMBER_OF_CELLS_PER_BYTE) {
+    eeprom_update_word(address, value);
+};
+
+uint_fast16_t storage_read_word(uint16_t* address, uint16_t defaultValue = 0, uint8_t numberOfCells = NUMBER_OF_CELLS_PER_BYTE) {
+    uint16_t val = eeprom_read_word(address);
+    return (val == 0xFFFF) ? defaultValue : val;
+}
+
 #endif

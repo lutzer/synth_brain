@@ -2,11 +2,10 @@
  * @Author: Lutz Reiter - http://lu-re.de 
  * @Date: 2020-01-06 19:13:57 
  * @Last Modified by: Lutz Reiter - http://lu-re.de
- * @Last Modified time: 2020-01-22 08:42:26
+ * @Last Modified time: 2020-01-29 13:29:27
  */
 
 #include <avr/io.h>
-#include <avr/interrupt.h>
 
 #include "config.h"
 #include "utils/macros.h"
@@ -22,21 +21,24 @@
 #include "state.h"
 #include "button.h"
 #include "display.h"
+#include "calibration_table.h"
 
 #ifdef DEBUG
 #include "utils/debug.h"
 #endif
 
-Statemachine *state;
+Statemachine *statemachine;
 MidiReader *midiIn;
-MidiHandler *midiHandler;
 
 Encoder *encoder;
 Buttons *buttons;
 Display *display;
 
+VoiceGroup *voiceGroup;
 Voice *voice[NUMBER_OF_VOICES];
 Dac *dac;
+CalibrationTable *calibrationTable;
+
 OneShotTrigger *trigger;
 
 void onMidiMessage(MidiMessage message) {
@@ -44,7 +46,7 @@ void onMidiMessage(MidiMessage message) {
     debug_print("m:%01X,%u %u,%u\n", message.command(), message.channel(), message.data[0], message.data[1]);
     #endif
 
-    midiHandler->handle(message);
+    voiceGroup->handle(message);
 }
 
 void onGateChange(bool enabled, uchar dacChannel) {
@@ -68,10 +70,10 @@ void onButtonChange(uchar changes, uchar pushed) {
     #endif
 
     if (changes & _BV(ENCODER_BUTTON) && pushed & _BV(ENCODER_BUTTON)) {
-        state->encoder_push();
+        statemachine->encoder_push();
     }
     if (changes & _BV(MODE_BUTTON) && pushed & _BV(MODE_BUTTON)) {
-        state->mode_button_push();
+        statemachine->mode_button_push();
     }
 }
 
@@ -80,7 +82,7 @@ void onEncoderChange(int change) {
     debug_print("ec:%i\n", change);
     #endif
 
-    state->encoder_turn(change);
+    statemachine->encoder_turn(change);
 }
 
 void onStateChanged(const State &state) {
@@ -88,8 +90,15 @@ void onStateChanged(const State &state) {
     debug_print("state: %i:%i\n", state.status, state.midiMode);
     #endif
 
-    // switch midi mode and midi channels
-    midiHandler->setMidiMode(state.midiMode, state.midiChannels);
+    // only set calibration on first state change
+    static bool loaded = true;
+    if (loaded) {
+        calibrationTable->setCalibrationOffsets(state.calibration);
+        loaded = false;
+    }
+
+    // switch midi mode and midi channels and set calibration values
+    voiceGroup->setMidiMode(state.midiMode, state.midiChannels);
 
     // switch midi-mode led
     if (state.midiMode == MidiMode::SPLIT) {
@@ -111,16 +120,40 @@ void onStateChanged(const State &state) {
                 display->print("C1");
             else if (state.menuStatus == MenuState::MENU_CHANNEL2)
                 display->print("C2");
-            else if (state.menuStatus == MenuState::MENU_CALIBRATE_LOW)
-                display->print("SL");
-            else if (state.menuStatus == MenuState::MENU_CALIBRATE_HIGH)
-                display->print("SH");
+            else if (state.menuStatus == MenuState::MENU_CALIBRATE_A1)
+                display->print("A1");
+            else if (state.menuStatus == MenuState::MENU_CALIBRATE_A2)
+                display->print("A2");
+            else if (state.menuStatus == MenuState::MENU_CALIBRATE_A3)
+                display->print("A3");
+            else if (state.menuStatus == MenuState::MENU_CALIBRATE_A4)
+                display->print("A4");
             break;
         case CtrlState::CONTROL_CHANNEL1:
             display->print(state.midiChannels[0]+1);
             break;
         case CtrlState::CONTROL_CHANNEL2:
             display->print(state.midiChannels[1]+1);
+            break;
+        case CtrlState::CALIBRATE_A1:
+            calibrationTable->setCalibrationOffsets(state.calibration);
+            display->print(state.calibration[1]);
+            voiceGroup->retrigger();
+            break;
+        case CtrlState::CALIBRATE_A2:
+            calibrationTable->setCalibrationOffsets(state.calibration);
+            display->print(state.calibration[2]);
+            voiceGroup->retrigger();
+            break;
+        case CtrlState::CALIBRATE_A3:
+            calibrationTable->setCalibrationOffsets(state.calibration);
+            display->print(state.calibration[3]);
+            voiceGroup->retrigger();
+            break;
+        case CtrlState::CALIBRATE_A4:
+            calibrationTable->setCalibrationOffsets(state.calibration);
+            display->print(state.calibration[4]);
+            voiceGroup->retrigger();
             break;
     }
 }
@@ -142,17 +175,20 @@ int main(void) {
     buttons = new Buttons(&onButtonChange);
 
     // setup statemachine
-    state = new Statemachine(&onStateChanged);
+    statemachine = new Statemachine(&onStateChanged);
+
+    // init calibration table
+    calibrationTable = new CalibrationTable(NUMBER_OF_CALIBRATION_VALUES);
 
     // init the two oscillators
     dac = new Dac();
-    voice[0] = new Voice(dac, 0, &onGateChange);
-    voice[1] = new Voice(dac, 1, &onGateChange);
+    voice[0] = new Voice(dac, 0, calibrationTable, &onGateChange);
+    voice[1] = new Voice(dac, 1, calibrationTable, &onGateChange);
 
-    // init midi handler
-    midiHandler = new MidiHandler();
-    midiHandler->addVoice(voice[0]);
-    midiHandler->addVoice(voice[1]);
+    // init voice group
+    voiceGroup = new VoiceGroup();
+    voiceGroup->addVoice(voice[0]);
+    voiceGroup->addVoice(voice[1]);
 
     // init midi
     midiIn = new MidiReader(&onMidiMessage);
@@ -167,7 +203,7 @@ int main(void) {
     debug_print("initialized\n");
     #endif
 
-    state->load();
+    statemachine->load();
 
     while (1)
     {
@@ -177,13 +213,12 @@ int main(void) {
             midiIn->parse(c);
         }
 
-        voice[0]->update();
-        voice[1]->update();
+        voiceGroup->update();
 
         encoder->update();
         buttons->update();
         
-        state->update();
+        statemachine->update();
 
         display->update();
 

@@ -28,7 +28,7 @@ class Buttons {
     uchar buttonMask = 0;
     
     public:
-        Buttons(ButtonsChangeHandler handler);
+        explicit Buttons(ButtonsChangeHandler handler);
         void update();
 
         // holds 8x2 bit counters, max = 15

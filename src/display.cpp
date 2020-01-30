@@ -76,6 +76,10 @@ Display::Display() {
 
     setDots(0);
 
+    for (uint8_t i=0;i < NUMBER_OF_DIGITS; i++) {
+        this->data[i] = 0;
+    }
+
 }
 
 void Display::showDot(uchar dot, bool show) {

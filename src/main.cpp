@@ -178,7 +178,7 @@ int main(void) {
     statemachine = new Statemachine(&onStateChanged);
 
     // init calibration table
-    calibrationTable = new CalibrationTable(NUMBER_OF_CALIBRATION_VALUES);
+    calibrationTable = new CalibrationTable();
 
     // init the two oscillators
     dac = new Dac();

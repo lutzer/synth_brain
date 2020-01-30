@@ -69,7 +69,7 @@ class Statemachine {
 
         static volatile uint16_t _triggerTimeoutOverflows;
 
-        Statemachine(StateChangeHandler handler);
+        explicit Statemachine(StateChangeHandler handler);
 
         // loads/saves in eeprom  
         void load();

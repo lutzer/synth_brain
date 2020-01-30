@@ -2,7 +2,7 @@
  * @Author: Lutz Reiter - http://lu-re.de 
  * @Date: 2020-01-06 19:13:43 
  * @Last Modified by: Lutz Reiter - http://lu-re.de
- * @Last Modified time: 2020-01-09 09:44:01
+ * @Last Modified time: 2020-01-29 13:36:18
  */
 
 #ifndef MIDI_H
@@ -54,7 +54,7 @@ class MidiReader {
     MidiMessage message;
 
     public:
-        MidiReader(messageHandlerPtr handler);
+        explicit MidiReader(messageHandlerPtr handler);
         void parse(byte b);
 };
 

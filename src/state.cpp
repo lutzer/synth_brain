@@ -32,6 +32,8 @@ void timerTimeoutFunc() {
 
 Statemachine::Statemachine(StateChangeHandler handler) : handler(handler) {
     Timer2::addCallback(&timerTimeoutFunc);
+
+    this->state = State();
 }
 
 void Statemachine::load() {

@@ -2,7 +2,7 @@
  * @Author: Lutz Reiter - http://lu-re.de 
  * @Date: 2020-01-28 21:03:40 
  * @Last Modified by: Lutz Reiter - http://lu-re.de
- * @Last Modified time: 2020-01-29 13:20:54
+ * @Last Modified time: 2020-01-29 13:33:25
  */
 
 #include "calibration_table.h"
@@ -12,7 +12,7 @@
 #include "utils/debug.h"
 #endif
 
-#define NOTE_VAL_A0 21
+#define NOTE_A0_MIDI_VAL 21
 
 const uint16_t CalibrationTable::CALIBRATION_DEFAULT_VALUES[] = {
     0,      // A0 0mV
@@ -29,25 +29,22 @@ const float fractionsOf12[] = {
     0.6666666, 0.75, 0.8333333, 0.9166666
 };
 
-CalibrationTable::CalibrationTable(const uint8_t size) {
-    calibrationValues = new uint16_t[size];
-    calibrationValuesSize = size;
-
+CalibrationTable::CalibrationTable() {
     // init values with default
-    for (uint8_t i = 0; i < this->calibrationValuesSize; i++) {
+    for (uint8_t i = 0; i < NUMBER_OF_CALIBRATION_VALUES; i++) {
         calibrationValues[i] = CalibrationTable::CALIBRATION_DEFAULT_VALUES[i];
     }
 };
 
 void CalibrationTable::setCalibrationOffsets(const uint8_t *values) {
-    for (uint8_t i = 0; i < this->calibrationValuesSize; i++)
+    for (uint8_t i = 0; i < NUMBER_OF_CALIBRATION_VALUES; i++)
         calibrationValues[i] = CalibrationTable::CALIBRATION_DEFAULT_VALUES[i] + values[i] - 50;
 }
 
 uint16_t CalibrationTable::getValue(uint8_t note, uint16_t pitchbend) {
 
     // lowest note is A0
-    note = max(note - NOTE_VAL_A0, 0);
+    note = max(note - NOTE_A0_MIDI_VAL, 0);
 
     uint8_t octaveFraction = note % 12;
     uint8_t index = 0;
@@ -57,8 +54,8 @@ uint16_t CalibrationTable::getValue(uint8_t note, uint16_t pitchbend) {
     };
     
     // highest note is A5
-    if ((index + 1) >= this->calibrationValuesSize)
-        return calibrationValues[calibrationValuesSize - 1];
+    if ((index + 1) >= NUMBER_OF_CALIBRATION_VALUES)
+        return calibrationValues[NUMBER_OF_CALIBRATION_VALUES - 1];
 
     uint16_t lowerA = calibrationValues[index];
     uint16_t upperA = calibrationValues[index+1];

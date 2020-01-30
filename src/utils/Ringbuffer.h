@@ -20,7 +20,7 @@ class RingBuffer {
     volatile T *buffer;
 
     public:
-        RingBuffer<T>(uchar maxSize);
+        explicit RingBuffer<T>(uchar maxSize);
 
         void push(T e);
         T pop();

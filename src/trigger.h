@@ -13,7 +13,7 @@
 */
 class OneShotTrigger {
     public:
-        OneShotTrigger(unsigned int length /* in ms */);
+        explicit OneShotTrigger(unsigned int length /* in ms */);
         void fire();
 
         static volatile int _static_timer_overflows;

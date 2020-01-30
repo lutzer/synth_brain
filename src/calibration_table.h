@@ -14,13 +14,12 @@
 
 class CalibrationTable {
 
-    uint16_t *calibrationValues = 0;
-    uint8_t calibrationValuesSize = 0;
+    uint16_t calibrationValues[NUMBER_OF_CALIBRATION_VALUES];
 
     public:
         static const uint16_t CALIBRATION_DEFAULT_VALUES[];
 
-        CalibrationTable(const uint8_t size);
+        CalibrationTable();
         void setCalibrationOffsets(const uint8_t *values);
         uint16_t getValue(uint8_t note, uint16_t pitchbend = 0);
 };

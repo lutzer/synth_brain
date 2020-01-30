@@ -22,7 +22,7 @@ class Encoder {
     EncoderEventHandlerPtr encoderChangeHandler;
 
     public:
-        Encoder(EncoderEventHandlerPtr handler);
+        explicit Encoder(EncoderEventHandlerPtr handler);
 
         void update();
 

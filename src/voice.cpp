@@ -9,6 +9,8 @@
 
 #include "config.h"
 
+#include "utils/ringbuffer.h"
+
 Voice::Voice(Dac *dac, uchar dacChannel, CalibrationTable *calibrationTable, GateChangeHandler gateHandler) {
     this->channel = 0;
     this->updated = false;
@@ -73,6 +75,9 @@ void Voice::update() {
     }
 }
 
+VoiceGroup::VoiceGroup(uchar maxVoices) {
+}
+
 void VoiceGroup::addVoice(Voice *voice) {
     this->voices[this->numberOfVoices++] = voice;
 }
@@ -97,16 +102,18 @@ void VoiceGroup::retrigger() {
 
 void VoiceGroup::handle(MidiMessage msg) {
     MidiCommand cmd = msg.command();
-    for (uint8_t i = 0; i < numberOfVoices; i++) {
-        if (cmd == MidiCommand::System_Reset) {
-            voices[i]->stopAll();
-            continue;
-        }
 
-        if (this->midiMode == MidiMode::SPLIT) {
-            // debug_print("split\n");
+    if (cmd == MidiCommand::System_Reset) {
+        for (uint8_t i = 0; i < numberOfVoices; i++)
+            voices[i]->stopAll();
+        return;
+    }
+
+
+
+    if (this->midiMode == MidiMode::SPLIT) {
+        for (uint8_t i = 0; i < numberOfVoices; i++) {
             if (msg.channel() == voices[i]->channel) {
-                // debug_print("c%i\n",i);
                 switch (cmd) {
                     case MidiCommand::Note_On:
                         voices[i]->playNote(msg.data[0]);
@@ -116,12 +123,14 @@ void VoiceGroup::handle(MidiMessage msg) {
                         break;
                     case MidiCommand::Pitch_Bend:
                         voices[i]->setPitchBend(0);
+                        break;
                     default:
                         break;
                 }
             }
-        } else if (this->midiMode == MidiMode::MONOPHONIC) {
-            // debug_print("mono\n");
+        }
+    } else if (this->midiMode == MidiMode::MONOPHONIC) {
+        for (uint8_t i = 0; i < numberOfVoices; i++) {
             if (msg.channel() == voices[0]->channel) { // reacts to midi msg only on channel of voice1
                 switch (cmd) {
                     case MidiCommand::Note_On:
@@ -132,9 +141,40 @@ void VoiceGroup::handle(MidiMessage msg) {
                         break;
                     case MidiCommand::Pitch_Bend:
                         voices[i]->setPitchBend(0);
+                        break;
                     default:
                         break;
                 }
+            }
+        }  
+    } else if (this->midiMode == MidiMode::PARAPHONIC) {
+        if (msg.channel() == voices[0]->channel) { // reacts to midi msg only on channel of voice1
+            static uchar currentVoice = 0;
+            switch (cmd) {
+                case MidiCommand::Note_On:
+                    for (uint8_t i=0; i <= numberOfVoices; i++) {
+                        Voice *voice = voices[(currentVoice + i) % numberOfVoices];
+                        if (!voice->gate || i == numberOfVoices) {
+                            voice->playNote(msg.data[0]);
+                            currentVoice = (currentVoice + i) % numberOfVoices;
+                            break;
+                        }
+                    }
+                    break;
+                case MidiCommand::Note_Off:
+                    for (uint8_t i=0; i < numberOfVoices; i++) {
+                        Voice *voice = voices[(currentVoice + numberOfVoices - 1) % numberOfVoices];
+                        if (voice->note == msg.data[0]) {
+                            voice->stopNote(msg.data[0]);
+                            break;
+                        }
+                    }
+                    break;
+                case MidiCommand::Pitch_Bend:
+                    voices[currentVoice]->setPitchBend(0);
+                    break;
+                default:
+                    break;
             }
         }
     }

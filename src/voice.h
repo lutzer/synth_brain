@@ -12,6 +12,8 @@
 #include "midi.h"
 #include "calibration_table.h"
 
+#include "utils/ringbuffer.h"
+
 #define NUMBER_OF_VOICES 2
 
 typedef unsigned char uchar;
@@ -60,6 +62,8 @@ class VoiceGroup {
     MidiMode midiMode;
 
     public:
+        VoiceGroup(uchar maxVoices);
+
         void addVoice(Voice *voice);
         void setMidiMode(const MidiMode mode, const uchar *midiChannels);
 

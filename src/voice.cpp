@@ -75,8 +75,7 @@ void Voice::update() {
     }
 }
 
-VoiceGroup::VoiceGroup(uchar maxVoices) {
-}
+VoiceGroup::VoiceGroup() { }
 
 void VoiceGroup::addVoice(Voice *voice) {
     this->voices[this->numberOfVoices++] = voice;
@@ -108,8 +107,6 @@ void VoiceGroup::handle(MidiMessage msg) {
             voices[i]->stopAll();
         return;
     }
-
-
 
     if (this->midiMode == MidiMode::SPLIT) {
         for (uint8_t i = 0; i < numberOfVoices; i++) {
@@ -148,30 +145,30 @@ void VoiceGroup::handle(MidiMessage msg) {
             }
         }  
     } else if (this->midiMode == MidiMode::PARAPHONIC) {
+        static uchar currentVoice = 0;
         if (msg.channel() == voices[0]->channel) { // reacts to midi msg only on channel of voice1
-            static uchar currentVoice = 0;
             switch (cmd) {
                 case MidiCommand::Note_On:
                     for (uint8_t i=0; i <= numberOfVoices; i++) {
-                        Voice *voice = voices[(currentVoice + i) % numberOfVoices];
-                        if (!voice->gate || i == numberOfVoices) {
-                            voice->playNote(msg.data[0]);
-                            currentVoice = (currentVoice + i) % numberOfVoices;
+                        currentVoice = (currentVoice + 1) % numberOfVoices;
+                        if (!voices[currentVoice]->gate || i == numberOfVoices) { // play note a free voice, or + 1
+                            voices[currentVoice]->playNote(msg.data[0]);
                             break;
                         }
                     }
                     break;
                 case MidiCommand::Note_Off:
                     for (uint8_t i=0; i < numberOfVoices; i++) {
-                        Voice *voice = voices[(currentVoice + numberOfVoices - 1) % numberOfVoices];
-                        if (voice->note == msg.data[0]) {
-                            voice->stopNote(msg.data[0]);
+                        if (voices[i]->note == msg.data[0]) {
+                            voices[i]->stopNote(msg.data[0]);
                             break;
                         }
                     }
                     break;
                 case MidiCommand::Pitch_Bend:
-                    voices[currentVoice]->setPitchBend(0);
+                    for (uint8_t i=0; i < numberOfVoices; i++) {
+                        voices[i]->setPitchBend(0);
+                    }
                     break;
                 default:
                     break;

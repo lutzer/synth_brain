@@ -186,7 +186,7 @@ int main(void) {
     voice[1] = new Voice(dac, 1, calibrationTable, &onGateChange);
 
     // init voice group
-    voiceGroup = new VoiceGroup(NUMBER_OF_VOICES);
+    voiceGroup = new VoiceGroup();
     voiceGroup->addVoice(voice[0]);
     voiceGroup->addVoice(voice[1]);
 

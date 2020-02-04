@@ -62,7 +62,7 @@ class VoiceGroup {
     MidiMode midiMode;
 
     public:
-        VoiceGroup(uchar maxVoices);
+        VoiceGroup();
 
         void addVoice(Voice *voice);
         void setMidiMode(const MidiMode mode, const uchar *midiChannels);

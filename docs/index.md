@@ -52,3 +52,7 @@
 ### Schematic Notes
 
 * 100nf Decoupling must be set very close to gnd and vcc legs of 75HC595
+
+### Schematic
+
+![](images/schematic.jpeg)

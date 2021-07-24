@@ -22,3 +22,8 @@ Todo (done by arduino IDE for now)
 * connect a sparkfun FTDI Basic (or similar) to gnd and tx pin (PIN3)
 * setup port in platformio.ini
 * run `pio device monitor`
+
+## Board
+
+![](docs/images/prototype.jpg)
+

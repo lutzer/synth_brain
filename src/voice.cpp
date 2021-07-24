@@ -11,6 +11,10 @@
 
 #include "utils/ringbuffer.h"
 
+#ifdef DEBUG
+#include "utils/debug.h"
+#endif
+
 Voice::Voice(Dac *dac, uchar dacChannel, CalibrationTable *calibrationTable, GateChangeHandler gateHandler) {
     this->channel = 0;
     this->updated = false;
@@ -69,6 +73,9 @@ void Voice::playLastNote() {
 void Voice::update() {
     if (this->updated) {
         uint16_t val = this->calibrationTable->getValue(this->note);
+        #ifdef DEBUG
+        debug_print("dac %i: n%i:%i\n",this->dacChannel, this->note, val);
+        #endif
         this->dac->send(this->dacChannel, val);
         this->gateHandler(this->gate, this->dacChannel);
         this->updated = false;
@@ -97,6 +104,11 @@ void VoiceGroup::update() {
 void VoiceGroup::retrigger() {
     for (uint8_t i = 0; i < numberOfVoices; i++)
         voices[i]->playLastNote();
+}
+
+void VoiceGroup::playNote(uchar note) {
+    for (uint8_t i = 0; i < numberOfVoices; i++)
+        voices[i]->playNote(note);
 }
 
 void VoiceGroup::handle(MidiMessage msg) {
@@ -151,7 +163,7 @@ void VoiceGroup::handle(MidiMessage msg) {
                 case MidiCommand::Note_On:
                     for (uint8_t i=0; i <= numberOfVoices; i++) {
                         currentVoice = (currentVoice + 1) % numberOfVoices;
-                        if (!voices[currentVoice]->gate || i == numberOfVoices) { // play note a free voice, or + 1
+                        if (!voices[currentVoice]->gate || i == numberOfVoices) { // play note on a free voice, or + 1
                             voices[currentVoice]->playNote(msg.data[0]);
                             break;
                         }

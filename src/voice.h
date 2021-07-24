@@ -70,6 +70,8 @@ class VoiceGroup {
         void handle(MidiMessage msg);
         void retrigger();
 
+        void playNote(uchar note);
+
         void update();
 
 };

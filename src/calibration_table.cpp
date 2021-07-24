@@ -8,11 +8,7 @@
 #include "calibration_table.h"
 #include "utils/math.h"
 
-#ifdef DEBUG
-#include "utils/debug.h"
-#endif
-
-#define NOTE_A0_MIDI_VAL 21
+#define LOWEST_A_NOTE 33
 
 const uint16_t CalibrationTable::CALIBRATION_DEFAULT_VALUES[] = {
     0,      // A0 0mV
@@ -44,7 +40,7 @@ void CalibrationTable::setCalibrationOffsets(const uint8_t *values) {
 uint16_t CalibrationTable::getValue(uint8_t note, uint16_t pitchbend) {
 
     // lowest note is A0
-    note = max(note - NOTE_A0_MIDI_VAL, 0);
+    note = max(note - LOWEST_A_NOTE, 0);
 
     uint8_t octaveFraction = note % 12;
     uint8_t index = 0;
@@ -59,10 +55,6 @@ uint16_t CalibrationTable::getValue(uint8_t note, uint16_t pitchbend) {
 
     uint16_t lowerA = calibrationValues[index];
     uint16_t upperA = calibrationValues[index+1];
-
-    #ifdef DEBUG
-    debug_print("dac val: %i,%i %i\n",lowerA, upperA, octaveFraction);
-    #endif
 
     return lowerA + (upperA - lowerA) * fractionsOf12[octaveFraction];
 }
